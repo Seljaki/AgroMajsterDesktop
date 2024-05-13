@@ -15,12 +15,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import http.SERVER_URL
 import http.TOKEN
-import http.getAllUsers
 import http.login
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginWindow() {
+fun LoginWindow(menuState: MutableState<MenuState>) {
     var url by remember { mutableStateOf(SERVER_URL) }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -76,15 +75,11 @@ fun LoginWindow() {
                     } else {
                         scope.launch {
                             val token = login(username, password)
-                            //println("Token: $token")
                             if (token != null) {
                                 SERVER_URL = url
                                 TOKEN = token
-                               /* val users = getAllUsers()
-                                for (user in users) {
-                                    println(user)
-                                }*/
                                 loginError=""
+                                menuState.value = MenuState.MAIN
                             } else loginError = "Invalid data"
                         }
                     }
