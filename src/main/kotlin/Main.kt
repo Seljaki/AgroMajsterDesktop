@@ -9,23 +9,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-
-@Composable
-@Preview
-fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
-
-    MaterialTheme {
-        Button(onClick = {
-            text = "Hello, Desktop!"
-        }) {
-            Text(text)
-        }
-    }
-}
+import java.awt.Dimension
+import ui.App
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
+    Window(title = "AgroMajster", onCloseRequest = ::exitApplication) {
+        window.minimumSize = Dimension(500, 500)
         App()
     }
 }

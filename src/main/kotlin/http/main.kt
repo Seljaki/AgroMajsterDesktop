@@ -7,7 +7,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
 
-var SERVER_URL = "http://localhost:3333"
+var SERVER_URL = "https://seljaki-server.schnapsen66.eu"
 var TOKEN = ""
 
 fun getClient(): HttpClient {
