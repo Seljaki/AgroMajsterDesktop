@@ -1,5 +1,6 @@
 package ui
 
+import LoginInfo
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,9 +18,10 @@ import http.SERVER_URL
 import http.TOKEN
 import http.login
 import kotlinx.coroutines.launch
+import storeLoginInfo
 
 @Composable
-fun LoginWindow(menuState: MutableState<MenuState>) {
+fun LoginWindow(userInfo: MutableState<LoginInfo?>) {
     var url by remember { mutableStateOf(SERVER_URL) }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -76,10 +78,12 @@ fun LoginWindow(menuState: MutableState<MenuState>) {
                         scope.launch {
                             val token = login(username, password)
                             if (token != null) {
+                                val info = LoginInfo(username, token, url)
+                                storeLoginInfo(info)
                                 SERVER_URL = url
                                 TOKEN = token
                                 loginError=""
-                                menuState.value = MenuState.MAIN
+                                userInfo.value = info
                             } else loginError = "Invalid data"
                         }
                     }

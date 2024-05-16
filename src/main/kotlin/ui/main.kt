@@ -1,5 +1,6 @@
 package ui
 
+import LoginInfo
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MainWindow() {
+fun MainWindow(userInfo: MutableState<LoginInfo?>) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -23,7 +24,7 @@ fun MainWindow() {
                 .fillMaxHeight()
                 .border(1.dp, color = Color.Gray, shape = RoundedCornerShape(5.dp)),
         ) {
-            menu()
+            menu(onLogOutClicked = {userInfo.value = null})
         }
         Spacer(modifier = Modifier.width(10.dp))
         Box(
