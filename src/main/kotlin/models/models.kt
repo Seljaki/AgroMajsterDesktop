@@ -12,6 +12,6 @@ data class Company(
     var iban: String? = null,
     var email: String? = null,
     var isTaxpayer: Boolean = false,
-    var accessToke: String = UUID.randomUUID().toString(),
+    var accessToken: String = UUID.randomUUID().toString(),
     var defaultIssuer: Boolean = false
 )
