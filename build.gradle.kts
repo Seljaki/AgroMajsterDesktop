@@ -30,6 +30,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation ("ch.qos.logback:logback-classic:1.4.12")
+    implementation("it.skrape:skrapeit:1.2.2")
 }
 compose {
     kotlinCompilerPlugin.set("1.5.7")
