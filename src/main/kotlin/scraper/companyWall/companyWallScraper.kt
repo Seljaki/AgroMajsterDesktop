@@ -12,7 +12,10 @@ import scraper.ibanRegex
 
 fun scrapeCompanyWallPage(urlToScrape: String): Company {
     val company: Company = skrape(BrowserFetcher) { // <--- pass BrowserFetcher to include rendered JS
-        request { url = urlToScrape }
+        request {
+            url = urlToScrape
+            timeout = 15000
+        }
         extractIt<Company> {c ->
             htmlDocument {
                 div {
