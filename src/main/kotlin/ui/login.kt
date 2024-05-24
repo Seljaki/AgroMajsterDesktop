@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import http.SERVER_URL
 import http.TOKEN
 import http.login
@@ -63,6 +64,7 @@ fun LoginWindow(userInfo: MutableState<LoginInfo?>) {
             TextField(
                 value = password,
                 onValueChange = { password = it },
+                visualTransformation = PasswordVisualTransformation(),
                 label = { Text("Password") },
             )
             Spacer(modifier = Modifier.height(10.dp))
