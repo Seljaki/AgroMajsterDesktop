@@ -8,6 +8,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,9 +28,6 @@ sealed class Screen {
     object Scraper : Screen()
     object Generator : Screen()
 }
-
-
-
 
 @Composable
 fun CompanyItem(company: Company, onClick: () -> Unit) {
@@ -48,7 +48,7 @@ fun CompanyItem(company: Company, onClick: () -> Unit) {
 }
 
 @Composable
-fun CompanyDetailScreen(company: Company, onBack: () -> Unit) {
+fun CompanyDetailScreen(company: Company, onBack: () -> Unit, onDelete: () -> Unit) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(text = "Company Details", fontWeight = FontWeight.Bold, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(16.dp))
@@ -64,14 +64,19 @@ fun CompanyDetailScreen(company: Company, onBack: () -> Unit) {
         Text(text = "Default Issuer: ${if (company.defaultIssuer) "Yes" else "No"}", fontSize = 18.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onBack) {
-            Text("Back")
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(onClick = onBack, modifier = Modifier.weight(1f)) {
+                Text("Back")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = onDelete) {
+                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete Company", tint = Color.Red)
+            }
         }
     }
 }
-
-
-
 
 @Composable
 fun AddCompanyForm(
@@ -79,10 +84,24 @@ fun AddCompanyForm(
     onNewCompanyNameChange: (String) -> Unit,
     newCompanyAddress: String,
     onNewCompanyAddressChange: (String) -> Unit,
+    newCompanyAccessToken: String,
+    onNewCompanyAccessTokenChange: (String) -> Unit,
+    newCompanyPhone: String,
+    onNewCompanyPhoneChange: (String) -> Unit,
+    newCompanyTaxNumber: String,
+    onNewCompanyTaxNumberChange: (String) -> Unit,
+    newCompanyIban: String,
+    onNewCompanyIbanChange: (String) -> Unit,
+    newCompanyEmail: String,
+    onNewCompanyEmailChange: (String) -> Unit,
+    newCompanyIsTaxpayer: Boolean,
+    onNewCompanyIsTaxpayerChange: (Boolean) -> Unit,
+    newCompanyDefaultIssuer: Boolean,
+    onNewCompanyDefaultIssuerChange: (Boolean) -> Unit,
     onAddCompany: () -> Unit,
     onCancel: () -> Unit
 ) {
-    Column {
+    Column(modifier = Modifier.padding(16.dp)) {
         TextField(
             value = newCompanyName,
             onValueChange = onNewCompanyNameChange,
@@ -95,21 +114,70 @@ fun AddCompanyForm(
             label = { Text("Company Address") },
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
+        TextField(
+            value = newCompanyAccessToken,
+            onValueChange = onNewCompanyAccessTokenChange,
+            label = { Text("Access Token") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = newCompanyPhone,
+            onValueChange = onNewCompanyPhoneChange,
+            label = { Text("Phone") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = newCompanyTaxNumber,
+            onValueChange = onNewCompanyTaxNumberChange,
+            label = { Text("Tax Number") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = newCompanyIban,
+            onValueChange = onNewCompanyIbanChange,
+            label = { Text("IBAN") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = newCompanyEmail,
+            onValueChange = onNewCompanyEmailChange,
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = newCompanyIsTaxpayer,
+                onCheckedChange = onNewCompanyIsTaxpayerChange,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(text = "Is Taxpayer")
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = newCompanyDefaultIssuer,
+                onCheckedChange = onNewCompanyDefaultIssuerChange,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(text = "Default Issuer")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
         Row {
             Button(onClick = onAddCompany, modifier = Modifier.weight(1f)) {
                 Text("Add Company")
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = onCancel, modifier = Modifier.weight(1f)) {
+            Button(onClick = onCancel, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)) {
                 Text("Cancel")
             }
         }
     }
 }
+
 @Composable
 fun MainWindow(userInfo: MutableState<LoginInfo?>) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.ListCompanies) }
     var selectedCompany by remember { mutableStateOf<Company?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     Row(
         Modifier
@@ -139,6 +207,15 @@ fun MainWindow(userInfo: MutableState<LoginInfo?>) {
                 selectedCompany != null -> CompanyDetailScreen(company = selectedCompany!!, onBack = {
                     selectedCompany = null
                     currentScreen = Screen.ListCompanies
+                }, onDelete = {
+                    coroutineScope.launch {
+                        val success = deleteCompany(selectedCompany!!.id)
+                        println(success)
+                        if (success) {
+                            selectedCompany = null
+                            currentScreen = Screen.ListCompanies
+                        }
+                    }
                 })
                 currentScreen == Screen.ListCompanies -> CompanyListScreen(onCompanyClick = {
                     selectedCompany = it
@@ -151,7 +228,6 @@ fun MainWindow(userInfo: MutableState<LoginInfo?>) {
     }
 }
 
-
 @Composable
 fun CompanyListScreen(onCompanyClick: (Company) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
@@ -160,6 +236,13 @@ fun CompanyListScreen(onCompanyClick: (Company) -> Unit) {
     var showAddCompanyForm by remember { mutableStateOf(false) }
     var newCompanyName by remember { mutableStateOf("") }
     var newCompanyAddress by remember { mutableStateOf("") }
+    var newCompanyAccessToken by remember { mutableStateOf("") }
+    var newCompanyPhone by remember { mutableStateOf("") }
+    var newCompanyTaxNumber by remember { mutableStateOf("") }
+    var newCompanyIban by remember { mutableStateOf("") }
+    var newCompanyEmail by remember { mutableStateOf("") }
+    var newCompanyIsTaxpayer by remember { mutableStateOf(false) }
+    var newCompanyDefaultIssuer by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
@@ -184,47 +267,85 @@ fun CompanyListScreen(onCompanyClick: (Company) -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FloatingActionButton(onClick = { showAddCompanyForm = true }) {
-                Text("+")
+            FloatingActionButton(
+                onClick = { showAddCompanyForm = true },
+                backgroundColor = MaterialTheme.colors.primary
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Company")
             }
 
             if (showAddCompanyForm) {
-                AddCompanyForm(
-                    newCompanyName = newCompanyName,
-                    onNewCompanyNameChange = { newCompanyName = it },
-                    newCompanyAddress = newCompanyAddress,
-                    onNewCompanyAddressChange = { newCompanyAddress = it },
-                    onAddCompany = {
-                        coroutineScope.launch {
-                            val newCompany = Company(
-                                id = 0, // id is set by the server
-                                name = newCompanyName,
-                                address = newCompanyAddress,
-                                accessToken = "",
-                                phone = null,
-                                taxNumber = null,
-                                iban = null,
-                                email = null,
-                                isTaxpayer = false,
-                                defaultIssuer = false
-                            )
-                            val result = addCompany(newCompany)
-                            if (result) {
-                                companies = getAllCompany()
+                AlertDialog(
+                    onDismissRequest = { showAddCompanyForm = false },
+                    title = { Text(text = "Add New Company") },
+                    text = {
+                        AddCompanyForm(
+                            newCompanyName = newCompanyName,
+                            onNewCompanyNameChange = { newCompanyName = it },
+                            newCompanyAddress = newCompanyAddress,
+                            onNewCompanyAddressChange = { newCompanyAddress = it },
+                            newCompanyAccessToken = newCompanyAccessToken,
+                            onNewCompanyAccessTokenChange = { newCompanyAccessToken = it },
+                            newCompanyPhone = newCompanyPhone,
+                            onNewCompanyPhoneChange = { newCompanyPhone = it },
+                            newCompanyTaxNumber = newCompanyTaxNumber,
+                            onNewCompanyTaxNumberChange = { newCompanyTaxNumber = it },
+                            newCompanyIban = newCompanyIban,
+                            onNewCompanyIbanChange = { newCompanyIban = it },
+                            newCompanyEmail = newCompanyEmail,
+                            onNewCompanyEmailChange = { newCompanyEmail = it },
+                            newCompanyIsTaxpayer = newCompanyIsTaxpayer,
+                            onNewCompanyIsTaxpayerChange = { newCompanyIsTaxpayer = it },
+                            newCompanyDefaultIssuer = newCompanyDefaultIssuer,
+                            onNewCompanyDefaultIssuerChange = { newCompanyDefaultIssuer = it },
+                            onAddCompany = {
+                                coroutineScope.launch {
+                                    val newCompany = Company(
+                                        id = 0, // id is set by the server
+                                        name = newCompanyName,
+                                        address = newCompanyAddress,
+                                        accessToken = newCompanyAccessToken,
+                                        phone = newCompanyPhone,
+                                        taxNumber = newCompanyTaxNumber,
+                                        iban = newCompanyIban,
+                                        email = newCompanyEmail,
+                                        isTaxpayer = newCompanyIsTaxpayer,
+                                        defaultIssuer = newCompanyDefaultIssuer
+                                    )
+                                    val result = addCompany(newCompany)
+                                    if (result) {
+                                        companies = getAllCompany()
+                                        showAddCompanyForm = false
+                                        newCompanyName = ""
+                                        newCompanyAddress = ""
+                                        newCompanyAccessToken = ""
+                                        newCompanyPhone = ""
+                                        newCompanyTaxNumber = ""
+                                        newCompanyIban = ""
+                                        newCompanyEmail = ""
+                                        newCompanyIsTaxpayer = false
+                                        newCompanyDefaultIssuer = false
+                                    }
+                                }
+                            },
+                            onCancel = {
                                 showAddCompanyForm = false
                                 newCompanyName = ""
                                 newCompanyAddress = ""
+                                newCompanyAccessToken = ""
+                                newCompanyPhone = ""
+                                newCompanyTaxNumber = ""
+                                newCompanyIban = ""
+                                newCompanyEmail = ""
+                                newCompanyIsTaxpayer = false
+                                newCompanyDefaultIssuer = false
                             }
-                        }
+                        )
                     },
-                    onCancel = {
-                        showAddCompanyForm = false
-                        newCompanyName = ""
-                        newCompanyAddress = ""
-                    }
+                    confirmButton = {},
+                    dismissButton = {}
                 )
             }
         }
     }
 }
-

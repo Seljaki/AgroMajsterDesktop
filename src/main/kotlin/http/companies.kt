@@ -33,6 +33,8 @@ suspend fun deleteCompany(companyId: Int): Boolean {
             append("x-auth-token", TOKEN)
         }
     }
+    println(response)
+    println(TOKEN)
     return response.status.value in 200..299
 }
 
