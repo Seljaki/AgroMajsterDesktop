@@ -10,19 +10,30 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 
 @Serializable
-data class Company(val id : Int, val name: String, val address: String? = null, val accessToken: Boolean,
+data class Company(val id : Int, val name: String, val address: String? = null, val accessToken: String,
                    val phone: String? = null, val taxNumber: String? = null, val iban: String? = null, val email: String? = null,
                    val isTaxpayer: Boolean, val defaultIssuer: Boolean)
 
 suspend fun getAllCompany(): List<Company> {
     val client = getClient()
-    val response: HttpResponse = client.get("/companies")
+    var response: HttpResponse = client.get("/companies")
     if (response.status.value in 200..299) {
         val json = Json.parseToJsonElement(response.bodyAsText())
         println(json.toString())
         return Json.decodeFromJsonElement(json.jsonObject["companies"] ?: return emptyList())
     }
     return emptyList()
+}
+
+
+suspend fun deleteCompany(companyId: Int): Boolean {
+    val client = getClient()
+    val response: HttpResponse = client.delete("/companies/$companyId") {
+        headers {
+            append("x-auth-token", TOKEN)
+        }
+    }
+    return response.status.value in 200..299
 }
 
 suspend fun addCompany(company: Company): Boolean {
