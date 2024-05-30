@@ -12,9 +12,15 @@ group = "com.seljaki.desktop"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    mavenCentral()
+    mavenCentral() {
+        content {
+            excludeModule("javax.media", "jai_core")
+        }
+    }
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     google()
+    maven ("https://repo.osgeo.org/repository/release/")
+    jcenter()
 }
 
 dependencies {
@@ -31,6 +37,15 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation ("ch.qos.logback:logback-classic:1.4.12")
     implementation("it.skrape:skrapeit:1.2.2")
+
+    implementation("org.geotools:gt-main:31.0")
+    testImplementation("org.geotools:gt-shapefile:31.0")
+    testImplementation("org.geotools:gt-epsg-hsql:31-RC")
+
+    //implementation("com.google.maps.android:maps-compose:5.0.1")
+    //implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("ovh.plrapps:mapcompose-mp:0.9.3")
+
 }
 compose {
     kotlinCompilerPlugin.set("1.5.7")
