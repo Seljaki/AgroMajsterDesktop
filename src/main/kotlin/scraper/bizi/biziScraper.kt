@@ -33,11 +33,15 @@ fun scrapeBiziPage(urlToScrape: String): Company {
                                 c.address = text
                             }
                         }
-                        a {
-                            withClass = "i-ostalo-telefon"
-                            findFirst {
-                                c.phone = text
+                        try {
+                            a {
+                                withClass = "i-ostalo-telefon"
+                                findFirst {
+                                    c.phone = text
+                                }
                             }
+                        } catch (e: Exception) {
+                            println("Phone not found")
                         }
                         try {
                             a {
