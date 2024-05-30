@@ -10,10 +10,12 @@ import it.skrape.selects.html5.a
 import it.skrape.selects.html5.div
 import it.skrape.selects.html5.span
 import models.Company
+import scraper.bizi.scrapeBiziPage
 import scraper.emailRegex
 import scraper.ibanRegex
 
-fun scrapeCompanyWallForCompanies(urlToScrape: String = "https://www.companywall.si/iskanje?cr=EUR&n=&mv=&r=&c=&cp=&FromDateAlt=&FromDate=&ToDateAlt=&ToDate=&at=&area=1&subarea=-1&sbjact=t&blckd=&dbf=&dbt=&type=&bly=2022&dsm%5B0%5D.Code=101&dsm%5B0%5D.From=0&dsm%5B0%5D.To=0&wfr=&wto=&dsm%5B-1%5D.Code=0&dsm%5B-1%5D.From=0&dsm%5B-1%5D.To=0&distinctcodes=&xpnd=true&recaptchaToken=03AFcWeA422GCNrw-yqffX_BHylkxLT5XIwijKWmTauocR-zxLt0ZIsLknZxZuDl9mbWF0HcQUQcoz8-5PsG2k3SCGF21Fh_xCqYWAoZHAUjE6Bwkk0kPnvctYhuoz3GQcaPaPC5Cvegeowlx5Nl4kq21kvRuuEWbZBGCUAf2dY3BcDg0u97efU_91jS-UUrxtfzroA0CigoVOujmMBovJPcpg0wGBkOYqfqlp2NC0rOAQ7hlLhgcnpqakHO3t_Uek1tNNI64gmJyRhnTkylOnEYzKpNTtYaHR7Osl5Ry6pOrvlJ0qWemHJR_Vxfq8z-n9FgY2D69e785NyNpd3Ora_NX8yZoVXUEaNMXHf4AncDUBhR6a6K1aHb04Estyw4ryqydXbIBo1deLmebvKSKt_wNSvoZk27dNr1ECJ_ABftjl7nj_z4_VM5p2g_1okXSRjBrVK12dJrmNF_OCy_Cm8VgF0BY5egdJlxzAODf6H7eCd0rHcvFmUiqD-wdiL8qcuZguHpSWf5xv-fHFWASqf4Xxc08qlQcvePHtKu7P0MX3PM9rGc5bHRJ7DtRRW2PnVk5YtepHGEYtLAC7VgOsSTRXOBJK_aQs9NaQeCM6DJogH97Y633RcSATXjqCKXQUQNVLK3rd0QN3KFbqcb47dYyyox1Kcz42kwI1lhcdv68uMlSMEVuO47c") {
+fun scrapeCompanyWallForCompanies(maxCompaniesToScrape: Int = 3, urlToScrape: String = "https://www.bing.com/search?q=site%3Acompanywall.si+%22Storitve+za+rastlinsko+pridelavo%22&qs=n&form=QBRE&sp=-1&lq=0&pq=site%3Acompanywall.si+%22storitve+za+rastlinsko+pridelavo%22&sc=0-54&sk=&cvid=544B3C281FFC41288D017B638994B06F&ghsh=0&ghacc=0&ghpl="): MutableList<Company> {
+    val companies = mutableListOf<Company>()
     skrape(BrowserFetcher) { // <--- pass BrowserFetcher to include rendered JS
         request {
             url = urlToScrape
@@ -22,18 +24,35 @@ fun scrapeCompanyWallForCompanies(urlToScrape: String = "https://www.companywall
         }
         response {
             htmlDocument {
-                println(text)
-                div {
-                    withClass = "searched-companies"
-                    findFirst {
-                        a {
-                            findAll {
-                                println(eachLink)
+                //println(text)
+                a {
+                    findAll {
+                        //println(eachLink)
+                        for (entry in eachLink.entries.iterator()) {
+                            if(entry.value.contains("www.bizi.si/") && !entry.value.contains("TSMEDIA")) {
+                                try {
+                                    println("Scraping: ${entry.value}")
+                                    val company = scrapeBiziPage(entry.value)
+                                    if (companies.count() == 0) {
+                                        companies.add(company)
+                                        println("Scraped: ${company.name}")
+                                    } else if(companies.count() > 0 && company.name != companies.last().name) {
+                                        companies.add(company)
+                                        println("Scraped: ${company.name}")
+                                    }
+                                } catch (ex: Exception) {
+                                    println(ex)
+                                }
+                                //println("${entry.key} : ${entry.value}")
                             }
+                            if(companies.count() >= maxCompaniesToScrape)
+                                return@findAll
                         }
                     }
                 }
             }
         }
     }
+
+    return companies
 }
