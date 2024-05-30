@@ -16,7 +16,7 @@ data class Company(val id : Int, val name: String, val address: String? = null, 
 
 suspend fun getAllCompany(): List<Company> {
     val client = getClient()
-    var response: HttpResponse = client.get("/companies")
+    val response: HttpResponse = client.get("/companies")
     if (response.status.value in 200..299) {
         val json = Json.parseToJsonElement(response.bodyAsText())
         println(json.toString())

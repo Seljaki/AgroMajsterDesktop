@@ -1,3 +1,5 @@
+package ui
+
 import LoginInfo
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,13 +26,16 @@ sealed class Screen {
     object Generator : Screen()
 }
 
+
+
+
 @Composable
 fun CompanyItem(company: Company, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick), // Handle click event
         elevation = 2.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -43,7 +48,7 @@ fun CompanyItem(company: Company, onClick: () -> Unit) {
 }
 
 @Composable
-fun CompanyDetailScreen(company: Company, onBack: () -> Unit, onDelete: (Int) -> Unit) {
+fun CompanyDetailScreen(company: Company, onBack: () -> Unit) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(text = "Company Details", fontWeight = FontWeight.Bold, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(16.dp))
@@ -59,17 +64,14 @@ fun CompanyDetailScreen(company: Company, onBack: () -> Unit, onDelete: (Int) ->
         Text(text = "Default Issuer: ${if (company.defaultIssuer) "Yes" else "No"}", fontSize = 18.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
-        Row {
-            Button(onClick = onBack) {
-                Text("Back")
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { onDelete(company.id) }, colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red)) {
-                Text("Delete")
-            }
+        Button(onClick = onBack) {
+            Text("Back")
         }
     }
 }
+
+
+
 
 @Composable
 fun AddCompanyForm(
@@ -104,20 +106,10 @@ fun AddCompanyForm(
         }
     }
 }
-
 @Composable
 fun MainWindow(userInfo: MutableState<LoginInfo?>) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.ListCompanies) }
     var selectedCompany by remember { mutableStateOf<Company?>(null) }
-    var companies by remember { mutableStateOf<List<Company>>(emptyList()) }
-
-    val coroutineScope = rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            companies = getAllCompany()
-        }
-    }
 
     Row(
         Modifier
@@ -147,17 +139,8 @@ fun MainWindow(userInfo: MutableState<LoginInfo?>) {
                 selectedCompany != null -> CompanyDetailScreen(company = selectedCompany!!, onBack = {
                     selectedCompany = null
                     currentScreen = Screen.ListCompanies
-                }, onDelete = { companyId ->
-                    coroutineScope.launch {
-                        val success = deleteCompany(companyId)
-                        if (success) {
-                            companies = getAllCompany()
-                            selectedCompany = null
-                            currentScreen = Screen.ListCompanies
-                        }
-                    }
                 })
-                currentScreen == Screen.ListCompanies -> CompanyListScreen(companies = companies, onCompanyClick = {
+                currentScreen == Screen.ListCompanies -> CompanyListScreen(onCompanyClick = {
                     selectedCompany = it
                 })
                 currentScreen == Screen.TempContent -> Text("TEMP CONTENT")
@@ -168,9 +151,11 @@ fun MainWindow(userInfo: MutableState<LoginInfo?>) {
     }
 }
 
+
 @Composable
-fun CompanyListScreen(companies: List<Company>, onCompanyClick: (Company) -> Unit) {
+fun CompanyListScreen(onCompanyClick: (Company) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
+    var companies by remember { mutableStateOf<List<Company>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var showAddCompanyForm by remember { mutableStateOf(false) }
     var newCompanyName by remember { mutableStateOf("") }
@@ -178,6 +163,7 @@ fun CompanyListScreen(companies: List<Company>, onCompanyClick: (Company) -> Uni
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
+            companies = getAllCompany()
             isLoading = false
         }
     }
@@ -224,7 +210,7 @@ fun CompanyListScreen(companies: List<Company>, onCompanyClick: (Company) -> Uni
                             )
                             val result = addCompany(newCompany)
                             if (result) {
-                                companies = companies + getAllCompany() // This line should work now because `companies` is a `var`
+                                companies = getAllCompany()
                                 showAddCompanyForm = false
                                 newCompanyName = ""
                                 newCompanyAddress = ""
@@ -241,3 +227,4 @@ fun CompanyListScreen(companies: List<Company>, onCompanyClick: (Company) -> Uni
         }
     }
 }
+
