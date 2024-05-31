@@ -46,3 +46,4 @@ build/
 gradle/wrapper/gradle-wrapper.jar
 .idea/gradle.xml
 loginInfo.json
+/downloads/
