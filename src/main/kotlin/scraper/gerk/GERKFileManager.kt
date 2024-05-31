@@ -1,87 +1,62 @@
 package scraper.gerk
 
+import io.ktor.client.statement.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.geotools.api.data.FileDataStoreFinder
 import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.simple.SimpleFeatureIterator
+import org.geotools.geojson.feature.FeatureJSON
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.geotools.util.URLs
+import org.json.simple.JSONObject
+import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.geom.GeometryFactory
-import java.awt.image.BufferedImage
+import org.locationtech.jts.geom.Point
 import java.io.File
-import java.io.IOException
-import javax.imageio.ImageIO
+import java.io.StringWriter
 
-class GeoToolsTileProvider {
 
-    fun getTile(latitude: Double, longitude: Double, zoomLvl: Int, shapefilePath: String, tileBasePath: String): BufferedImage? {
-        // Step 1: Load the shapefile
-        val store = FileDataStoreFinder.getDataStore(File(shapefilePath))
-        val featureSource: SimpleFeatureSource = store.featureSource
+fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double): SimpleFeature? {
+    val file = File(filePath)
 
-        // Step 2: Calculate the tile indices based on the coordinates and zoom level
-        val tileX = long2tileX(longitude, zoomLvl)
-        val tileY = lat2tileY(latitude, zoomLvl)
+    val geometryFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory()
+    val point: Point = geometryFactory.createPoint(Coordinate(lng, lat))
 
-        // Step 3: Locate the tile image on the filesystem
-        val tilePath = "$tileBasePath/$zoomLvl/$tileY/$tileX.jpg"
-        val tileFile = File(tilePath)
+    if (!file.exists()) {
+        println("File does not exist: $filePath")
+        return null
+    }
 
-        if (!tileFile.exists()) {
-            throw IOException("Tile not found: $tilePath")
+    try {
+        // Find the data store for the shapefile
+        val dataStore = FileDataStoreFinder.getDataStore(file)
+        val featureSource: SimpleFeatureSource = dataStore.featureSource
+
+        // Get the feature collection
+        val featureCollection = featureSource.features
+
+        // Iterate over the features
+        val featureIterator: SimpleFeatureIterator = featureCollection.features()
+        while (featureIterator.hasNext()) {
+            val feature: SimpleFeature = featureIterator.next()
+            val geometry: Geometry = feature.defaultGeometry as Geometry
+            if (geometry.contains(point)) {
+                println("FOUND")
+                featureIterator.close()
+                return feature
+            }
         }
 
-        // Return the tile image
-        return ImageIO.read(tileFile)
+        // Close the iterator
+        featureIterator.close()
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
-
-    // Utility functions to convert coordinates to tile indices
-    fun long2tileX(lon: Double, zoom: Int): Int {
-        return Math.floor((lon + 180) / 360 * Math.pow(2.0, zoom.toDouble())).toInt()
-    }
-
-    fun lat2tileY(lat: Double, zoom: Int): Int {
-        return Math.floor((1 - Math.log(Math.tan(Math.toRadians(lat)) + 1 / Math.cos(Math.toRadians(lat))) / Math.PI) / 2 * Math.pow(2.0, zoom.toDouble())).toInt()
-    }
-}
-
-fun readShapefile(filePath: String): List<Geometry> {
-    val shapefile = File(filePath)
-    println(shapefile.exists())
-
-    //val lon = 1.0
-    //val lat = 1.0
-
-    //val geometryFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory()
-    //val point = geometryFactory.createPoint(org.locationtech.jts.geom.Coordinate(lon, lat))
-
-
-    val dataStore = FileDataStoreFinder.getDataStore(shapefile)
-    val featureSource: SimpleFeatureSource = dataStore.featureSource
-    val featureCollection = featureSource.features
-
-
-    val geometries = mutableListOf<Geometry>()
-    val iterator = featureCollection.features()
-    while (iterator.hasNext()) {
-        val feature = iterator.next()
-        println(feature.attributes)
-        val geometry = feature.defaultGeometry as Geometry
-        geometries.add(geometry)
-
-        /*if (geometry is org.locationtech.jts.geom.Polygon) {
-            val polygon = geometry as org.locationtech.jts.geom.Polygon
-
-            if (polygon.contains(point)) {
-                println("Point is within the polygon with attributes: ${feature.attributes}")
-                break // Exit loop if the point is found in a polygon
-            }
-        }*/
-    }
-    iterator.close()
-    dataStore.dispose()
-
-    return geometries
+    return null
 }
 
 /*fun readShapefile(filePath: String) {
@@ -108,8 +83,24 @@ fun readShapefile(filePath: String): List<Geometry> {
     }
 }*/
 
+@Serializable
+data class GeoJsonFeature(val type: String, val geometry: String, val properties: String)
+
+fun simpleFeatureToGeoJson(feature: SimpleFeature): String {
+    val featureJSON = FeatureJSON()
+    val writer = StringWriter()
+    featureJSON.writeFeature(feature, writer)
+    val json = Json.parseToJsonElement(writer.toString())
+    return json.jsonObject["geometry"].toString() ?: return ""
+}
+
 fun main() {
-    val shapefilePath = "./downloads/GERK_20240430.shp"
-    val geometry = readShapefile(shapefilePath)
-    println(geometry[0].toText())
+    val shapefilePath = "downloads/GERK_20240430.shp"
+    val feature = findFeatureByCoordinates(shapefilePath, 577552.2391,140326.2588)
+    if(feature != null) {
+        println(feature.defaultGeometry)
+        println(simpleFeatureToGeoJson(feature))
+    }
+    //val geometry = readShapefile(shapefilePath)
+    //println(geometry[0].toText())
 }
