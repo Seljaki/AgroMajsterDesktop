@@ -33,6 +33,15 @@ suspend fun deleteCompany(companyId: Int): Boolean {
     return response.status.value in 200..299
 }
 
+suspend fun editCompany(companyId: Int, company: Company): Boolean{
+    var client = getClient()
+    val response: HttpResponse = client.put("/companies/$companyId"){
+        contentType(ContentType.Application.Json)
+        setBody(Json.encodeToJsonElement(company))
+    }
+    return response.status.value in 200..299
+}
+
 suspend fun addCompany(company: Company): Boolean {
     val client = getClient()
     val response: HttpResponse = client.post("/companies") {

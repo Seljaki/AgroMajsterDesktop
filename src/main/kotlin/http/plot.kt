@@ -32,7 +32,35 @@ suspend fun postPlot(plot: Plot): Boolean {
     return false
 }
 
+suspend fun editPlot(plot: Plot, plotId: Int): Boolean {
+    val client = getClient()
+    val response: HttpResponse = client.put("/plots/$plotId") {
+        contentType(ContentType.Application.Json)
+        setBody(plot)
+    }
+    return response.status.value in 200..299
+}
 
+suspend fun deletePlot(plotId: Int): Boolean {
+    val client = getClient()
+    val response: HttpResponse = client.delete("/plots/$plotId")
+    println(response)
+    return response.status.value in 200..299
+}
+
+fun parseGeoJsonCoordinates(boundary: String): List<List<List<Double>>> {
+    // Parse the boundary string to extract coordinates
+    // This function needs to parse the input string and return the expected coordinates format
+    // For simplicity, assume the input is well-formed GeoJSON
+    return boundary
+        .removeSurrounding("[[", "]]")
+        .split("],[")
+        .map {
+            it.split(",")
+                .map { coord -> coord.toDouble() }
+        }
+        .map { listOf(it) }
+}
 suspend fun main() {
     val token = login("admin", "admin")
     println("Token: $token")

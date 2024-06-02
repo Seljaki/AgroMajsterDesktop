@@ -41,6 +41,7 @@ data class PlotGeoJson (
     val crs: crs = crs()
 )
 
+
 @Serializable
 data class Plot(
     var title: String = "",
@@ -51,3 +52,4 @@ data class Plot(
     var archived: Boolean = false,
     var id: Int? = null,
 )
+

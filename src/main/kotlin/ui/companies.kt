@@ -1,13 +1,16 @@
 package ui
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,9 +41,114 @@ fun CompanyItem(company: Company, onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun EditCompanyScreen(company: Company, onBack: () -> Unit, onSave: (Company) -> Unit) {
+    var name by remember { mutableStateOf(company.name) }
+    var address by remember { mutableStateOf(company.address ?: "") }
+    var accessToken by remember { mutableStateOf(company.accessToken) }
+    var phone by remember { mutableStateOf(company.phone ?: "") }
+    var taxNumber by remember { mutableStateOf(company.taxNumber ?: "") }
+    var iban by remember { mutableStateOf(company.iban ?: "") }
+    var email by remember { mutableStateOf(company.email ?: "") }
+    var isTaxpayer by remember { mutableStateOf(company.isTaxpayer) }
+    var defaultIssuer by remember { mutableStateOf(company.defaultIssuer) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
+            .padding(16.dp)
+    ) {
+        Text(text = "Edit Company", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Name") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = address,
+            onValueChange = { address = it },
+            label = { Text("Address") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = accessToken,
+            onValueChange = { accessToken = it },
+            label = { Text("Access Token") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { phone = it },
+            label = { Text("Phone") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = taxNumber,
+            onValueChange = { taxNumber = it },
+            label = { Text("Tax Number") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = iban,
+            onValueChange = { iban = it },
+            label = { Text("IBAN") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = isTaxpayer,
+                onCheckedChange = { isTaxpayer = it }
+            )
+            Text(text = "Is Taxpayer")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = defaultIssuer,
+                onCheckedChange = { defaultIssuer = it }
+            )
+            Text(text = "Default Issuer")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row {
+            Button(onClick = onBack) {
+                Text("Cancel")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = {
+                val updatedCompany = company.copy(
+                    name = name,
+                    address = address,
+                    accessToken = accessToken,
+                    phone = phone,
+                    taxNumber = taxNumber,
+                    iban = iban,
+                    email = email,
+                    isTaxpayer = isTaxpayer,
+                    defaultIssuer = defaultIssuer
+                )
+                onSave(updatedCompany)
+            }) {
+                Text("Save")
+            }
+        }
+    }
+}
+
+
 
 @Composable
-fun CompanyDetailScreen(company: Company, onBack: () -> Unit, onDelete: () -> Unit) {
+fun CompanyDetailScreen(company: Company, onBack: () -> Unit, onDelete: () -> Unit, onEdit: () -> Unit) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(text = "Company Details", fontWeight = FontWeight.Bold, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(16.dp))
@@ -65,6 +173,10 @@ fun CompanyDetailScreen(company: Company, onBack: () -> Unit, onDelete: () -> Un
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onDelete) {
                 Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete Company", tint = Color.Red)
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = onEdit) {
+                Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Company", tint = Color.Blue)
             }
         }
     }
