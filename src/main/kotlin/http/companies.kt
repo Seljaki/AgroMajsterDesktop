@@ -28,13 +28,8 @@ suspend fun getAllCompany(): List<Company> {
 
 suspend fun deleteCompany(companyId: Int): Boolean {
     val client = getClient()
-    val response: HttpResponse = client.delete("/companies/$companyId") {
-        headers {
-            append("x-auth-token", TOKEN)
-        }
-    }
+    val response: HttpResponse = client.delete("/companies/$companyId")
     println(response)
-    println(TOKEN)
     return response.status.value in 200..299
 }
 
