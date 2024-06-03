@@ -42,6 +42,8 @@ dependencies {
     implementation("org.geotools:gt-geojson:31.0")
     //implementation("org.locationtech.jts:jts-core:1.18.2")
     implementation("org.geotools:gt-epsg-hsql:31-RC")
+    implementation("io.github.serpro69:kotlin-faker:1.12.0")
+
 
     //implementation("com.google.maps.android:maps-compose:5.0.1")
     //implementation("org.osmdroid:osmdroid-android:6.1.18")

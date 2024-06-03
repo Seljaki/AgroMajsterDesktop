@@ -6,7 +6,7 @@ import ui.App
 
 fun main() = application {
     val icon = painterResource("logo.png")
-    Window(title = "Agro Majster Manager Pro+++", onCloseRequest = ::exitApplication,
+    Window(title = "Agro Majster Manager", onCloseRequest = ::exitApplication,
         icon = icon
         ) {
         window.minimumSize = Dimension(650, 600)
