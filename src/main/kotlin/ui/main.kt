@@ -48,6 +48,8 @@ fun MainWindow(userInfo: MutableState<LoginInfo?>) {
             menu(onLogOutClicked = { userInfo.value = null }, onListCompaniesClicked = {
                 currentScreen = Screen.ListCompanies
                 selectedCompany = null
+            }, onGeneratorClicked = {
+                currentScreen = Screen.Generator
             })
         }
         Spacer(modifier = Modifier.width(10.dp))
@@ -77,7 +79,7 @@ fun MainWindow(userInfo: MutableState<LoginInfo?>) {
                 })
                 currentScreen == Screen.TempContent -> Text("TEMP CONTENT")
                 currentScreen == Screen.Scraper -> Text("Scraper Content")
-                currentScreen == Screen.Generator -> Text("Generator Content")
+                currentScreen == Screen.Generator -> Gen()
             }
         }
     }

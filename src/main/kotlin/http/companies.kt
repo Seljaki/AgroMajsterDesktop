@@ -10,7 +10,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 
 @Serializable
-data class Company(val id : Int, val name: String, val address: String? = null, val accessToken: String,
+data class Company(val id : Int, val name: String, val address: String? = null, val accessToken: String? = null,
                    val phone: String? = null, val taxNumber: String? = null, val iban: String? = null, val email: String? = null,
                    val isTaxpayer: Boolean, val defaultIssuer: Boolean)
 
