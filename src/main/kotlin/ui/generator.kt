@@ -471,18 +471,16 @@ fun fakeDataCompany(
             isTaxpayer = false,
             defaultIssuer = issuerStatus,
         )
-        println("generated: $newCompany")
-
         scope.launch {
             val success = addCompany(newCompany)
             if (success) {
                 setErrorText("podjetje uspešno dodano")
                 setErrorTextColor(Color.Blue)
-                println("Job added successfully: $newCompany")
+                println("Company added successfully: $newCompany")
             } else {
                 setErrorText("podjetja ni bilo mogoče dodati")
                 setErrorTextColor(Color.Red)
-                println("Failed to add job: $newCompany")
+                println("Failed to add Company: $newCompany")
             }
         }
     }

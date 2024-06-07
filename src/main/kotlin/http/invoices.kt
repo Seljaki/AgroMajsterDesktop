@@ -12,17 +12,17 @@ import kotlinx.serialization.json.jsonObject
 data class Invoice(
     val id: Int, val title: String, val note: String? = "", val started: String,
     val ended: String? = null, val isPaid: Boolean = false, val dueDate: String? = null,
-    val customer_id: Int, val issuer_id: Int
+    val customer_id: Int, val issuer_id: Int, val issuer: Company, val customer: Company, val totalPrice: String
 )
 
 suspend fun getAllInvoices(): List<Invoice> {
     val client = getClient()
     val response: HttpResponse = client.get("/invoices")
     if (response.status.value in 200..299) {
-        val json = Json { ignoreUnknownKeys = true }
-        val jsonElement = Json.parseToJsonElement(response.bodyAsText())
-        println(jsonElement.toString())
-        return json.decodeFromJsonElement(jsonElement.jsonObject["invoices"] ?: return emptyList())
+        val json = Json.parseToJsonElement(response.bodyAsText())
+        println(json.toString())
+        return Json.decodeFromJsonElement(json.jsonObject["invoices"] ?: return emptyList())
+
     }
     return emptyList()
 }
