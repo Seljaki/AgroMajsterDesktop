@@ -15,16 +15,20 @@ import androidx.compose.ui.unit.sp
 import faker.com.ibm.icu.math.BigDecimal
 import http.*
 import io.github.serpro69.kfaker.Faker
+import io.github.serpro69.kfaker.fakerConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import org.iban4j.CountryCode
+import org.iban4j.Iban
 
 enum class FormType {
     Form2,
     Form3
 }
 
-val faker = Faker()
+val config = fakerConfig { locale = "de" }
+val faker = Faker(config)
 
 
 @Composable
@@ -77,12 +81,111 @@ fun DisplayForm(formType: FormType) {
 
 @Composable
 fun Form2Content() {
-    Text("Form 2 content")
+    var errorText by remember { mutableStateOf("") }
+    var errorTextColor by remember { mutableStateOf(Color.Red) }
+    var quantity by remember { mutableStateOf(1) }
+    val (isCheckedTrueTaxpayer, setCheckedTrueTaxpayer) = remember { mutableStateOf(false) }
+    val (isCheckedFalseTaxpayer, setCheckedFalseTaxpayer) = remember { mutableStateOf(false) }
+    val (isCheckedTrueIssuer, setCheckedTrueIssuer) = remember { mutableStateOf(false) }
+    val (isCheckedFalseIssuer, setCheckedFalseIssuer) = remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    Column(
+        modifier = Modifier
+            .border(1.dp, color = Color.Gray, shape = RoundedCornerShape(5.dp))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center
+
+    ) {
+        Text(
+            text = "Generiranje podjetja",
+            fontSize = 20.sp
+        )
+
+
+        NumberInputField(
+            title = "Količina vpisov",
+            value = quantity,
+            onValueChange = { newValue ->
+                quantity = newValue
+            }
+        )
+        Text("ali je lahko davčni zavezanec: (mora biti vsaj 1)")
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly
+
+        ) {
+            CheckboxWithLabel(
+                label = "ja",
+                checked = isCheckedTrueTaxpayer,
+                onCheckedChange = { setCheckedTrueTaxpayer(it) },
+            )
+            CheckboxWithLabel(
+                label = "ne",
+                checked = isCheckedFalseTaxpayer,
+                onCheckedChange = { setCheckedFalseTaxpayer(it) },
+            )
+        }
+        Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.width(300.dp))
+        Text("ali je lahko prevzeti izdajatelj: (mora biti vsaj 1)")
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly
+
+        ) {
+            CheckboxWithLabel(
+                label = "ja",
+                checked = isCheckedTrueIssuer,
+                onCheckedChange = { setCheckedTrueIssuer(it) },
+            )
+            CheckboxWithLabel(
+                label = "ne",
+                checked = isCheckedFalseIssuer,
+                onCheckedChange = { setCheckedFalseIssuer(it) },
+            )
+        }
+        Text(
+            text = errorText,
+            color = errorTextColor
+        )
+        Button(
+            onClick = {
+                if (!isCheckedFalseTaxpayer && !isCheckedTrueTaxpayer) {
+                    errorText = "Izberite vsaj eno možnost"
+                    errorTextColor = Color.Red
+
+                } else if (!isCheckedTrueIssuer && !isCheckedFalseIssuer) {
+                    errorText = "Izberite vsaj eno možnost"
+                    errorTextColor = Color.Red
+
+                } else if (quantity < 1) {
+                    errorText = "Količina vpisov mora biti vsaj 1"
+                    errorTextColor = Color.Red
+                } else {
+                    errorText = ""
+                    coroutineScope.launch {
+                        fakeDataCompany(
+                            quantity,
+                            isCheckedTrueTaxpayer,
+                            isCheckedFalseTaxpayer,
+                            isCheckedTrueIssuer,
+                            isCheckedFalseIssuer,
+                            coroutineScope,
+                            { error -> errorText = error },
+                            { color -> errorTextColor = color }
+                        )
+                    }
+                }
+            }
+        ) {
+            Text("Generiraj")
+        }
+    }
 }
 
 @Composable
 fun Form3Content() {
-    var error by remember { mutableStateOf("") }
+    var errorText by remember { mutableStateOf("") }
+    var errorTextColor by remember { mutableStateOf(Color.Red) }
     var quantity by remember { mutableStateOf(1) }
     var minPrice by remember { mutableStateOf(0.00) }
     var maxPrice by remember { mutableStateOf(0.00) }
@@ -103,7 +206,7 @@ fun Form3Content() {
 
     ) {
         Text(
-            text = "Generiranje Službe",
+            text = "Generiranje službe",
             fontSize = 20.sp
         )
 
@@ -215,17 +318,20 @@ fun Form3Content() {
             )
         }
         Text(
-            text = error,
-            color = Color.Red
+            text = errorText,
+            color = errorTextColor
         )
         Button(
             onClick = {
                 if (!isCheckedHour && !isCheckedPiece && !isCheckedArea) {
-                    error = "Izberite vsaj en tip službe"
+                    errorText = "Izberite vsaj en tip službe"
+                    errorTextColor = Color.Red
+
                 } else if (quantity < 1) {
-                    error = "Količina vpisov mora biti vsaj 1"
+                    errorText = "Količina vpisov mora biti vsaj 1"
+                    errorTextColor = Color.Red
                 } else {
-                    error = ""
+                    errorText = ""
                     coroutineScope.launch {
                         var jobTypeList = mutableListOf<JobType>()
 
@@ -233,9 +339,14 @@ fun Form3Content() {
                         if (isCheckedHour) jobTypeList = getAllJobTypesOfQuantityType("price_per_hour")
                         if (isCheckedPiece) jobTypeList += getAllJobTypesOfQuantityType("price_per_piece")
                         if (isCheckedArea) jobTypeList += getAllJobTypesOfQuantityType("price_per_area")
-                        if (jobTypeList.isEmpty()) error = "ta vrsta tipa službe je prazna"
-                        if (invoiceList.isEmpty()) error = "nimamo nobenih računov"
-                        else
+                        if (jobTypeList.isEmpty()) {
+                            errorText = "ta vrsta tipa službe je prazna"
+                            errorTextColor = Color.Red
+                        }
+                        if (invoiceList.isEmpty()) {
+                            errorText = "nimamo nobenih računov"
+                            errorTextColor = Color.Red
+                        } else
                             fakeDataJob(
                                 quantity,
                                 minPrice,
@@ -246,7 +357,9 @@ fun Form3Content() {
                                 maxTime,
                                 jobTypeList,
                                 invoiceList,
-                                coroutineScope
+                                coroutineScope,
+                                { error -> errorText = error },
+                                { color -> errorTextColor = color }
                             )
                     }
                 }
@@ -322,6 +435,58 @@ fun CheckboxWithLabel(label: String, checked: Boolean, onCheckedChange: (Boolean
     }
 }
 
+fun fakeDataCompany(
+    quantity: Int,
+    isCheckedTrueTaxpayer: Boolean,
+    isCheckedFalseTaxpayer: Boolean,
+    isCheckedTrueIssuer: Boolean,
+    isCheckedFalseIssuer: Boolean,
+    scope: CoroutineScope,
+    setErrorText: (String) -> Unit,
+    setErrorTextColor: (Color) -> Unit
+) {
+    repeat(quantity) {
+
+        val taxpayerStatus = generateStatus(isCheckedTrueTaxpayer, isCheckedFalseTaxpayer)
+        val issuerStatus = generateStatus(isCheckedTrueIssuer, isCheckedFalseIssuer)
+        val newCompany: Company
+        if(taxpayerStatus){
+            newCompany= Company(
+                id = 0,
+                name = faker.company.name(),
+                address = faker.address.fullAddress(),
+                phone = faker.phoneNumber.cellPhone.number(),
+                taxNumber = generateTax(),
+                iban = Iban.random(CountryCode.SI).toString(),
+                email = faker.internet.email(),
+                isTaxpayer = true,
+                defaultIssuer = issuerStatus,
+            )
+        }
+        else
+        newCompany = Company(
+            id = 0,
+            name = faker.name.firstName() +" "+ faker.name.lastName(),
+            address = faker.address.fullAddress(),
+            isTaxpayer = false,
+            defaultIssuer = issuerStatus,
+        )
+        println("generated: $newCompany")
+
+        scope.launch {
+            val success = addCompany(newCompany)
+            if (success) {
+                setErrorText("podjetje uspešno dodano")
+                setErrorTextColor(Color.Blue)
+                println("Job added successfully: $newCompany")
+            } else {
+                setErrorText("podjetja ni bilo mogoče dodati")
+                setErrorTextColor(Color.Red)
+                println("Failed to add job: $newCompany")
+            }
+        }
+    }
+}
 
 fun fakeDataJob(
     quantity: Int,
@@ -333,9 +498,10 @@ fun fakeDataJob(
     maxTime: Int,
     jobTypeList: List<JobType>,
     invoiceList: List<Invoice>,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    setErrorText: (String) -> Unit,
+    setErrorTextColor: (Color) -> Unit
 ) {
-    var newJob: Job
     repeat(quantity) {
         val randomPrice = randomDoubleInRange(minPrice, maxPrice)
         val randomQuantity = faker.random.nextInt(minQuantity, maxQuantity)
@@ -346,26 +512,33 @@ fun fakeDataJob(
         totalPrice = BigDecimal(totalPrice).setScale(2, BigDecimal.ROUND_HALF_EVEN).toDouble()
 
         val newJob = Job(
-            id=0,
+            id = 0,
             quantity = randomQuantity,
             price = randomPrice,
             totalPrice = totalPrice,
             timeTaken = randomTimeTaken,
             invoice_id = randomInvoiceId,
-            jobtype_id =randomJobTypeId
+            jobtype_id = randomJobTypeId
         )
 
         scope.launch {
             val success = addJob(newJob)
             if (success) {
+                setErrorText("službe uspešno dodane")
+                setErrorTextColor(Color.Blue)
                 println("Job added successfully: $newJob")
             } else {
+                setErrorText("služb ni bilo mogoče dodati")
+                setErrorTextColor(Color.Red)
                 println("Failed to add job: $newJob")
             }
         }
     }
-
 }
+
+fun generateTax():String{
+    val randomDigits = (0 until 8).map { faker.random.nextInt(0, 9) }.joinToString("")
+    return "SI$randomDigits"}
 
 
 fun randomDoubleInRange(min: Double, max: Double): Double {
@@ -373,4 +546,13 @@ fun randomDoubleInRange(min: Double, max: Double): Double {
         return BigDecimal(min).setScale(2, BigDecimal.ROUND_HALF_EVEN).toDouble()
     val randomDouble = Random.nextDouble(min, max)
     return BigDecimal(randomDouble).setScale(2, BigDecimal.ROUND_HALF_EVEN).toDouble()
+}
+
+fun generateStatus(trueStatus: Boolean, falseStatus: Boolean): Boolean {
+    return when {
+        trueStatus && falseStatus -> faker.random.nextBoolean()
+        trueStatus -> true
+        falseStatus -> false
+        else -> false
+    }
 }
