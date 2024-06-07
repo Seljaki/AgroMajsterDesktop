@@ -7,13 +7,10 @@ import java.awt.Toolkit
 
 fun main() = application {
     val icon = painterResource("logo.png")
-    Window(title = "Agro Majster Manager", onCloseRequest = ::exitApplication,
+    Window(title = "Agro Majster Manager Pro+", onCloseRequest = ::exitApplication,
         icon = icon
         ) {
-        val screenSize: Dimension = Toolkit.getDefaultToolkit().screenSize
-        val screenHeight = screenSize.height
-
-        window.minimumSize = Dimension(650, screenHeight)
+        window.minimumSize = Dimension(1400, 1000)
         App()
     }
 }
