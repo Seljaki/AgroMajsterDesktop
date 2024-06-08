@@ -12,7 +12,7 @@ import kotlinx.serialization.json.jsonObject
 data class Invoice(
     val id: Int, val title: String, val note: String? = "", val started: String,
     val ended: String? = null, val isPaid: Boolean = false, val dueDate: String? = null,
-    val customer_id: Int, val issuer_id: Int, val issuer: Company, val customer: Company, val totalPrice: String
+    val customer_id: Int, val issuer_id: Int, val issuer: Company, val customer: Company, val totalPrice: String? = null
 )
 
 suspend fun getAllInvoices(): List<Invoice> {
