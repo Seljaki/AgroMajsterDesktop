@@ -28,7 +28,7 @@ import java.io.StringWriter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double): SimpleFeature? {
+fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double, onUpdateText: (String) -> Unit): SimpleFeature? {
     val file = File(filePath)
 
     val geometryFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory()
@@ -36,6 +36,7 @@ fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double): Simple
 
     if (!file.exists()) {
         println("File does not exist")
+        onUpdateText("Datoteka ne obstaja")
         return null
     }
 
@@ -54,6 +55,7 @@ fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double): Simple
             val geometry: Geometry = feature.defaultGeometry as Geometry
             if (geometry.contains(point)) {
                 println("FOUND")
+                onUpdateText("Najdeno je bilo polje: ${feature.defaultGeometry}")
                 //featureIterator.close()
                 return feature
             }
@@ -180,7 +182,7 @@ suspend fun main() {
     }
 
     val filePath = findGERKShapefile() // POIŠČEMO .shp DATOTEKO
-    val feature = findFeatureByCoordinates(filePath, 581585.9012,142261.7764) // poiščemo polygon z kordinati
+   /* val feature = findFeatureByCoordinates(filePath, 581585.9012,142261.7764) // poiščemo polygon z kordinati
     if(feature != null) {
         println(feature.defaultGeometry)
         val geom = simpleFeatureToGeoJson(feature)
@@ -198,5 +200,5 @@ suspend fun main() {
             TOKEN = token
             postPlot(plot)
         }
-    }
+    }*/
 }
