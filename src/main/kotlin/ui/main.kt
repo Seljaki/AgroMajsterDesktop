@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import http.Company
 import http.*
 import kotlinx.coroutines.launch
+import ui.scraper.scraperWindow
 
 sealed class Screen {
     object TempContent : Screen()
@@ -50,7 +51,9 @@ fun MainWindow(userInfo: MutableState<LoginInfo?>) {
                 selectedCompany = null
             }, onGeneratorClicked = {
                 currentScreen = Screen.Generator
-            })
+            }, onScraperClicked = {
+                    currentScreen = Screen.Scraper
+                })
         }
         Spacer(modifier = Modifier.width(10.dp))
         Box(
@@ -78,7 +81,7 @@ fun MainWindow(userInfo: MutableState<LoginInfo?>) {
                     selectedCompany = it
                 })
                 currentScreen == Screen.TempContent -> Text("TEMP CONTENT")
-                currentScreen == Screen.Scraper -> Text("Scraper Content")
+                currentScreen == Screen.Scraper -> scraperWindow()
                 currentScreen == Screen.Generator -> Gen()
             }
         }
