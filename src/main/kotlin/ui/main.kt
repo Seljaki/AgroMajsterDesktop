@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import http.Company
 import http.*
 import kotlinx.coroutines.launch
+import ui.generator.Gen
 import ui.scraper.scraperWindow
 
 sealed class Screen {
