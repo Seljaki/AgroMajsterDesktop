@@ -10,9 +10,10 @@ import http.TOKEN
 import logOut
 
 @Composable
-fun menu(onLogOutClicked: () -> Unit, onListCompaniesClicked: () -> Unit){
+fun menu(onLogOutClicked: () -> Unit, onListCompaniesClicked: () -> Unit, onInvoicesClicked: () -> Unit){
     MenuButton(Icons.Default.Share,"Scraper", onClick = { println("Scraper was clicked")})
     MenuButton(Icons.Default.Edit,"Generater", onClick = { println("Generater was clicked $TOKEN")})
     MenuButton(Icons.Default.Info,"List Companies", onClick = onListCompaniesClicked)
+    MenuButton(Icons.Default.Info, "List Invoices", onClick =  onInvoicesClicked)
     MenuButton(Icons.Default.Lock,"Log out", onClick = { logOut(); onLogOutClicked() })
 }

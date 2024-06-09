@@ -26,7 +26,7 @@ fun CompanyItem(company: Company, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable(onClick = onClick), // Handle click event
+            .clickable(onClick = onClick),
         elevation = 2.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
