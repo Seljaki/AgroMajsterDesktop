@@ -234,7 +234,7 @@ fun fakeDataJob(
       price = randomPrice,
       totalPrice = totalPrice,
       timeTaken = randomTimeTaken,
-      invoice_id = randomInvoiceId,
+      invoice_id = randomInvoiceId!!,
       jobtype_id = randomJobTypeId
     )
 

@@ -11,9 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import http.Company
-import http.Invoice
-import http.getAllCompany
+import http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -218,8 +216,8 @@ fun fakeDataInvoice(
   setErrorTextColor: (Color) -> Unit
 ) {
   repeat(quantity) {
-    var endedDate = ""
-    var dueDate = ""
+    var endedDate :String? =null
+    var dueDate :String? =null
     var isPaid = false
     val customerNumber =Random.nextInt(companyList.size)
     val issuerNumber =Random.nextInt(companyList.size)
@@ -244,7 +242,6 @@ fun fakeDataInvoice(
     val newInvoice= Invoice(
       id = 0,
       title = faker.job.title(),
-      note = faker.lorem.words(),
       started = LocalDate.now().toString(),
       ended = endedDate,
       isPaid = isPaid,
@@ -255,7 +252,19 @@ fun fakeDataInvoice(
       customer = customer
     )
 
-    println("new invoice: $newInvoice")
+    //println("new invoice: $newInvoice")
+    scope.launch {
+      val success = addInvoice(newInvoice)
+      if (success) {
+        setErrorText("računi uspešno dodani")
+        setErrorTextColor(Color.Blue)
+        println("Invoice added successfully: $newInvoice")
+      } else {
+        setErrorText("računov ni bilo mogoče dodati")
+        setErrorTextColor(Color.Red)
+        println("Failed to add invoice: $newInvoice")
+      }
+    }
   }
 }
 

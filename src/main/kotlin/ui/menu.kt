@@ -9,7 +9,7 @@ import androidx.compose.runtime.*
 import logOut
 
 @Composable
-fun menu(onLogOutClicked: () -> Unit, onListCompaniesClicked: () -> Unit, onGeneratorClicked: () -> Unit, onScraperClicked: () -> Unit){
+fun menu(onLogOutClicked: () -> Unit, onListCompaniesClicked: () -> Unit, onGeneratorClicked: () -> Unit, onScraperClicked: () -> Unit, onInvoicesClicked: () -> Unit){
     MenuButton(Icons.Default.Share,"Scraper", onClick = onScraperClicked)
     MenuButton(Icons.Default.Edit,"Generator", onClick = onGeneratorClicked)
     MenuButton(Icons.Default.Info,"List Companies", onClick = onListCompaniesClicked)
