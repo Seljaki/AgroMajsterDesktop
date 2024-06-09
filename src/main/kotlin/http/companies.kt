@@ -52,6 +52,21 @@ suspend fun editCompany(companyId: Int, company: Company): Boolean{
     }
     return response.status.value in 200..299
 }
+suspend fun translate(company: models.Company): http.Company {
+    return http.Company(
+        id = 0, // Assuming the ID is generated server-side or not needed here
+        name = company.name,
+        address = company.address,
+        accessToken = company.accessToken,
+        phone = company.phone,
+        taxNumber = company.taxNumber,
+        iban = company.iban,
+        email = company.email,
+        isTaxpayer = company.isTaxpayer,
+        defaultIssuer = company.defaultIssuer
+    )
+}
+
 suspend fun addCompany(company: Company): Boolean {
     val client = getClient()
     val response: HttpResponse = client.post("/companies") {

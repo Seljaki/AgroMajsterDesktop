@@ -16,8 +16,8 @@ fun getDocumentByUrl(urlToScrape: String) = skrape(BrowserFetcher) { // <--- pas
 }
 
 fun main() {
-    //val companies = scrapeBiziPageForCompanies()
-    val companies = scrapeCompanyWallForCompanies()
+    val companies = scrapeBiziPageForCompanies()
+    //val companies = scrapeCompanyWallForCompanies()
     println("=== LISTING ALL FOUND COMPANIES ===")
     for(company in companies) {
         println(company)
