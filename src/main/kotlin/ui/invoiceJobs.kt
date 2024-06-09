@@ -234,7 +234,7 @@ fun InvoiceDetailScreen(invoice: Invoice, onBack: () -> Unit, onDelete: () -> Un
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(onClick = onBack, modifier = Modifier.weight(1f)) {
-                    Text("Back")
+                    Text("Nazaj")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(onClick = onDelete) {
