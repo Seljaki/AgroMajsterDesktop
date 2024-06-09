@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -35,126 +36,141 @@ fun FormPlotScraper() {
     boundedText = newText
   }
 
+  var isLoading by remember { mutableStateOf(false) }
+
   Column(
     modifier = Modifier
       .border(1.dp, color = Color.Gray, shape = RoundedCornerShape(5.dp))
       .padding(16.dp),
     verticalArrangement = Arrangement.Center
   ) {
-    Text(
-      text = "Pridobi polja",
-      fontSize = 20.sp
-    )
+    if (isLoading) {
+      CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+      Text(
+        text = "Downloading files\nGo grab some coffee ☕",
+        fontSize = 20.sp
+      )
+    } else {
+      Text(
+        text = "Pridobi polja",
+        fontSize = 20.sp
+      )
 
-    Row(
-      horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-      Button(
-        onClick = { coroutineScope.launch { updateGERKData() } },
-        modifier = Modifier.padding(end = 8.dp)
+      Row(
+        horizontalArrangement = Arrangement.SpaceEvenly
       ) {
-        Text("Pridobi z GERK-a")
-      }
-      Button(onClick = { coroutineScope.launch { deleteGERKData() } }) {
-        Text("Počisti podatke")
-      }
-    }
-
-    Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.width(450.dp))
-
-    Row(
-      horizontalArrangement = Arrangement.SpaceEvenly,
-      modifier = Modifier.padding(top = 16.dp)
-    ) {
-      Column {
-        TextField(
-          label = { Text("Longituda") },
-          value = longitudeInput,
-          onValueChange = { newValue ->
-            longitudeInput = newValue
-            val parsedValue = newValue.toDoubleOrNull()
-            if (parsedValue == null && newValue.isNotEmpty()) {
-              longitudeError = "neveljavna vrednost"
-            } else {
-              longitudeError = null
-              longitude = parsedValue
+        Button(
+          onClick = {
+            coroutineScope.launch {
+              isLoading = true
+                updateGERKData()
+              isLoading = false
             }
           },
-          isError = longitudeError != null,
-          modifier = Modifier.width(150.dp)
-        )
-        if (longitudeError != null) {
-          Text(
-            text = longitudeError!!,
-            color = Color.Red,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(top = 4.dp)
-          )
+          modifier = Modifier.padding(end = 8.dp)
+        ) {
+          Text("Pridobi z GERK-a")
+        }
+        Button(onClick = { coroutineScope.launch { deleteGERKData() } }) {
+          Text("Počisti podatke")
         }
       }
 
-      Spacer(modifier = Modifier.width(16.dp))
+      Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.width(450.dp))
 
-      Column {
-        TextField(
-          label = { Text("Latituda") },
-          value = latitudeInput,
-          onValueChange = { newValue ->
-            latitudeInput = newValue
-            val parsedValue = newValue.toDoubleOrNull()
-            if (parsedValue == null && newValue.isNotEmpty()) {
-              latitudeError = "neveljavna vrednost"
-            } else {
-              latitudeError = null
-              latitude = parsedValue
-            }
-          },
-          isError = latitudeError != null,
-          modifier = Modifier.width(150.dp)
-        )
-        if (latitudeError != null) {
-          Text(
-            text = latitudeError!!,
-            color = Color.Red,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(top = 4.dp)
+      Row(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier.padding(top = 16.dp)
+      ) {
+        Column {
+          TextField(
+            label = { Text("Longituda") },
+            value = longitudeInput,
+            onValueChange = { newValue ->
+              longitudeInput = newValue
+              val parsedValue = newValue.toDoubleOrNull()
+              if (parsedValue == null && newValue.isNotEmpty()) {
+                longitudeError = "neveljavna vrednost"
+              } else {
+                longitudeError = null
+                longitude = parsedValue
+              }
+            },
+            isError = longitudeError != null,
+            modifier = Modifier.width(150.dp)
           )
-        }
-      }
-      Button(onClick = {
-        if (latitude != null && longitude != null) {
-          coroutineScope.launch {
-            result = findFeatureByCoordinates(findGERKShapefile(), latitude!!, longitude!!){ newBoundedText ->
-              updateBoundedText(newBoundedText)
-            }
+          if (longitudeError != null) {
+            Text(
+              text = longitudeError!!,
+              color = Color.Red,
+              fontSize = 12.sp,
+              modifier = Modifier.padding(top = 4.dp)
+            )
           }
-        } else {
-          if (longitude == null) longitudeError = "neveljavna vrednost"
-          if (latitude == null) latitudeError = "neveljavna vrednost"
         }
-      },
-        modifier = Modifier.padding(start = 16.dp)) {
-        Text("Poišči polje")
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column {
+          TextField(
+            label = { Text("Latituda") },
+            value = latitudeInput,
+            onValueChange = { newValue ->
+              latitudeInput = newValue
+              val parsedValue = newValue.toDoubleOrNull()
+              if (parsedValue == null && newValue.isNotEmpty()) {
+                latitudeError = "neveljavna vrednost"
+              } else {
+                latitudeError = null
+                latitude = parsedValue
+              }
+            },
+            isError = latitudeError != null,
+            modifier = Modifier.width(150.dp)
+          )
+          if (latitudeError != null) {
+            Text(
+              text = latitudeError!!,
+              color = Color.Red,
+              fontSize = 12.sp,
+              modifier = Modifier.padding(top = 4.dp)
+            )
+          }
+        }
+        Button(onClick = {
+          if (latitude != null && longitude != null) {
+            coroutineScope.launch {
+              result = findFeatureByCoordinates(findGERKShapefile(), longitude!!, latitude!!){ newBoundedText ->
+                updateBoundedText(newBoundedText)
+              }
+            }
+          } else {
+            if (longitude == null) longitudeError = "neveljavna vrednost"
+            if (latitude == null) latitudeError = "neveljavna vrednost"
+          }
+        },
+          modifier = Modifier.padding(start = 16.dp)) {
+          Text("Poišči polje")
+        }
+      }
+      Spacer(modifier = Modifier.width(16.dp))
+      Spacer(modifier = Modifier.height(16.dp))
+      BoundedTextBox(boundedText)
+      Button(onClick = { coroutineScope.launch {
+        if(result!=null){
+          val geom = simpleFeatureToGeoJson(result!!)
+          val gjson = Json.decodeFromString<PlotGeoJsonMultiPolygon>(geom)
+          val gjson2: PlotGeoJson = geoJsonMPToPolygon(gjson)
+          val plot = Plot("KOTLIN GERK", "TETS KOTLIN", gjson2)
+          postPlot(plot)
+        } else{
+          boundedText = "prišlo je do napake pri iskanju polja"
+        }
+
+      } }) {
+        Text("Shrani v bazo")
       }
     }
-    Spacer(modifier = Modifier.width(16.dp))
-    Spacer(modifier = Modifier.height(16.dp))
-    BoundedTextBox(boundedText)
-  }
-
-  Button(onClick = { coroutineScope.launch {
-    if(result!=null){
-      val geom = simpleFeatureToGeoJson(result!!)
-      val gjson = Json.decodeFromString<PlotGeoJsonMultiPolygon>(geom)
-      val gjson2: PlotGeoJson = geoJsonMPToPolygon(gjson)
-      val plot = Plot("KOTLIN GERK", "TETS KOTLIN", gjson2)
-      postPlot(plot)
-    } else{
-      boundedText = "prišlo je do napake pri iskanju polja"
-    }
-
-  } }) {
-    Text("Shrani v bazo")
   }
 }
 

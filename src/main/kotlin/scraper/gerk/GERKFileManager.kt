@@ -1,6 +1,5 @@
 package scraper.gerk
 
-import http.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -9,10 +8,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
-import models.Plot
 import models.PlotGeoJson
 import models.PlotGeoJsonMultiPolygon
 import org.geotools.api.data.FileDataStoreFinder
@@ -77,7 +74,7 @@ fun simpleFeatureToGeoJson(feature: SimpleFeature): String {
     return json.jsonObject["geometry"].toString() ?: return ""
 }
 
-fun downloadLatestGERKFiles(url: String): File {
+suspend fun downloadLatestGERKFiles(url: String, debug: Boolean = false): File {
     val client = HttpClient(CIO) {
         install(HttpTimeout) {
             requestTimeoutMillis = 600000
@@ -85,21 +82,21 @@ fun downloadLatestGERKFiles(url: String): File {
             socketTimeoutMillis = 600000
         }
     }
+    println("Downloading from url: $url")
     val file = File.createTempFile("GERKDATA", "index")
 
-    runBlocking {
-        client.prepareGet(url).execute { httpResponse ->
-            val channel: ByteReadChannel = httpResponse.body()
-            while (!channel.isClosedForRead) {
-                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                while (!packet.isEmpty) {
-                    val bytes = packet.readBytes()
-                    file.appendBytes(bytes)
+    client.prepareGet(url).execute { httpResponse ->
+        val channel: ByteReadChannel = httpResponse.body()
+        while (!channel.isClosedForRead) {
+            val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+            while (!packet.isEmpty) {
+                val bytes = packet.readBytes()
+                file.appendBytes(bytes)
+                if(debug)
                     println("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
-                }
             }
-            println("A file saved to ${file.path}")
         }
+        println("A file saved to ${file.path}")
     }
 
     return file
@@ -157,7 +154,7 @@ fun findGERKShapefile(directoryPath: String = "downloads"): String {
     return file.path
 }
 
-fun updateGERKData() {
+suspend fun updateGERKData() {
     deleteGERKData()
     val GERKUrl = scrapeGERForLink() ?: return
     val file = downloadLatestGERKFiles(GERKUrl)
