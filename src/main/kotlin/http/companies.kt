@@ -14,7 +14,7 @@ val json = Json {
 }
 
 @Serializable
-data class Company(val id : Int, val name: String, val address: String? = null, val accessToken: String,
+data class Company(val id : Int, val name: String, val address: String? = null, val accessToken: String? = null,
                    val phone: String? = null, val taxNumber: String? = null, val iban: String? = null, val email: String? = null,
                    val isTaxpayer: Boolean, val defaultIssuer: Boolean)
 
