@@ -166,11 +166,11 @@ fun CompanyList(companies: List<Company>) {
           horizontalArrangement = Arrangement.SpaceBetween
         ) {
           Column(modifier = Modifier.weight(1f)) {
-            Text("Company: ${company.name}", style = MaterialTheme.typography.h6)
+            Text("Podjetje: ${company.name}", style = MaterialTheme.typography.h6)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Address: ${company.address}", style = MaterialTheme.typography.body2)
+            Text("Naslov: ${company.address}", style = MaterialTheme.typography.body2)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Tax Number: ${company.taxNumber}", style = MaterialTheme.typography.body2)
+            Text("Davčna številka: ${company.taxNumber}", style = MaterialTheme.typography.body2)
             Spacer(modifier = Modifier.height(4.dp))
             Text("Email: ${company.email}", style = MaterialTheme.typography.body2)
             Spacer(modifier = Modifier.height(4.dp))
