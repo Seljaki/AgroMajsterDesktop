@@ -68,7 +68,7 @@ fun FormPlotScraper() {
     if (isLoading) {
       CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
       Text(
-        text = "Prenašanje datoteki\nZgrabite si kavico ☕",
+        text = "Prenašanje datoteke\nZgrabite si kavico ☕",
         fontSize = 20.sp
       )
     } else {
