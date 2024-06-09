@@ -1,13 +1,16 @@
 package ui
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,27 +43,31 @@ fun CompanyItem(company: Company, onClick: () -> Unit) {
 
 
 @Composable
-fun CompanyDetailScreen(company: Company, onBack: () -> Unit, onDelete: () -> Unit) {
+fun CompanyDetailScreen(company: Company, onBack: () -> Unit, onDelete: () -> Unit, onEdit: () -> Unit) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Company Details", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Text(text = "Podrobnosti", fontWeight = FontWeight.Bold, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Name: ${company.name}", fontSize = 18.sp)
-        Text(text = "Address: ${company.address ?: "N/A"}", fontSize = 18.sp)
-        Text(text = "Access Token: ${company.accessToken}", fontSize = 18.sp)
-        Text(text = "Phone: ${company.phone ?: "N/A"}", fontSize = 18.sp)
-        Text(text = "Tax Number: ${company.taxNumber ?: "N/A"}", fontSize = 18.sp)
+        Text(text = "Ime: ${company.name}", fontSize = 18.sp)
+        Text(text = "Naslov: ${company.address ?: "N/A"}", fontSize = 18.sp)
+        Text(text = "Dostopni Token: ${company.accessToken}", fontSize = 18.sp)
+        Text(text = "Telefonska številka: ${company.phone ?: "N/A"}", fontSize = 18.sp)
+        Text(text = "Davčna številka: ${company.taxNumber ?: "N/A"}", fontSize = 18.sp)
         Text(text = "IBAN: ${company.iban ?: "N/A"}", fontSize = 18.sp)
         Text(text = "Email: ${company.email ?: "N/A"}", fontSize = 18.sp)
-        Text(text = "Is Taxpayer: ${if (company.isTaxpayer) "Yes" else "No"}", fontSize = 18.sp)
-        Text(text = "Default Issuer: ${if (company.defaultIssuer) "Yes" else "No"}", fontSize = 18.sp)
+        Text(text = "Davkoplačevalec?: ${if (company.isTaxpayer) "Da" else "Ne"}", fontSize = 18.sp)
+        Text(text = "Privzeti izdajatelj: ${if (company.defaultIssuer) "Da" else "Ne"}", fontSize = 18.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(onClick = onBack, modifier = Modifier.weight(1f)) {
-                Text("Back")
+                Text("Nazaj")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = onEdit) {
+                Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Company", tint = Color.Blue)
             }
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onDelete) {
@@ -97,31 +104,31 @@ fun AddCompanyForm(
         TextField(
             value = newCompanyName,
             onValueChange = onNewCompanyNameChange,
-            label = { Text("Company Name") },
+            label = { Text("Ime podjetja") },
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
         TextField(
             value = newCompanyAddress,
             onValueChange = onNewCompanyAddressChange,
-            label = { Text("Company Address") },
+            label = { Text("Naslov") },
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
         TextField(
             value = newCompanyAccessToken,
             onValueChange = onNewCompanyAccessTokenChange,
-            label = { Text("Access Token") },
+            label = { Text("Dostopni token") },
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
         TextField(
             value = newCompanyPhone,
             onValueChange = onNewCompanyPhoneChange,
-            label = { Text("Phone") },
+            label = { Text("Telefonska številka") },
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
         TextField(
             value = newCompanyTaxNumber,
             onValueChange = onNewCompanyTaxNumberChange,
-            label = { Text("Tax Number") },
+            label = { Text("Davčna številka") },
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
         TextField(
@@ -142,7 +149,7 @@ fun AddCompanyForm(
                 onCheckedChange = onNewCompanyIsTaxpayerChange,
                 modifier = Modifier.padding(end = 8.dp)
             )
-            Text(text = "Is Taxpayer")
+            Text(text = "Davko plačevalec?")
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
@@ -150,16 +157,16 @@ fun AddCompanyForm(
                 onCheckedChange = onNewCompanyDefaultIssuerChange,
                 modifier = Modifier.padding(end = 8.dp)
             )
-            Text(text = "Default Issuer")
+            Text(text = "Privzeti izdajatelj")
         }
         Spacer(modifier = Modifier.height(16.dp))
         Row {
             Button(onClick = onAddCompany, modifier = Modifier.weight(1f)) {
-                Text("Add Company")
+                Text("Dodaj podjetje")
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = onCancel, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)) {
-                Text("Cancel")
+                Text("Prekliči")
             }
         }
     }
@@ -193,7 +200,7 @@ fun CompanyListScreen(onCompanyClick: (Company) -> Unit) {
             CircularProgressIndicator()
         } else {
             if (companies.isEmpty()) {
-                Text("No companies found.")
+                Text("Ni najdenih podjetij.")
             } else {
                 LazyColumn {
                     items(companies) { company ->
@@ -214,7 +221,7 @@ fun CompanyListScreen(onCompanyClick: (Company) -> Unit) {
             if (showAddCompanyForm) {
                 AlertDialog(
                     onDismissRequest = { showAddCompanyForm = false },
-                    title = { Text(text = "Add New Company") },
+                    title = { Text(text = "Dodaj podjetje") },
                     text = {
                         AddCompanyForm(
                             newCompanyName = newCompanyName,
@@ -286,3 +293,117 @@ fun CompanyListScreen(onCompanyClick: (Company) -> Unit) {
         }
     }
 }
+@Composable
+fun EditCompanyForm(
+    company: Company,
+    onUpdateCompany: (Company) -> Unit,
+    onCancel: () -> Unit
+) {
+    var name by remember { mutableStateOf(company.name) }
+    var address by remember { mutableStateOf(company.address ?: "") }
+    var accessToken by remember { mutableStateOf(company.accessToken) }
+    var phone by remember { mutableStateOf(company.phone ?: "") }
+    var taxNumber by remember { mutableStateOf(company.taxNumber ?: "") }
+    var iban by remember { mutableStateOf(company.iban ?: "") }
+    var email by remember { mutableStateOf(company.email ?: "") }
+    var isTaxpayer by remember { mutableStateOf(company.isTaxpayer) }
+    var defaultIssuer by remember { mutableStateOf(company.defaultIssuer) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        TextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Ime podjetja") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = address,
+            onValueChange = { address = it },
+            label = { Text("Naslov") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = accessToken!!,
+            onValueChange = { accessToken = it },
+            label = { Text("Dostopni token") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = phone,
+            onValueChange = { phone = it },
+            label = { Text("Telefonska številka") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = taxNumber,
+            onValueChange = { taxNumber = it },
+            label = { Text("Davčna številka") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = iban,
+            onValueChange = { iban = it },
+            label = { Text("IBAN") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        TextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = isTaxpayer,
+                onCheckedChange = { isTaxpayer = it },
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(text = "Davko plačevalec?")
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = defaultIssuer,
+                onCheckedChange = { defaultIssuer = it },
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(text = "Privzeti izdajatelj")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row {
+            Button(onClick = {
+                coroutineScope.launch {
+                    val updatedCompany = company.copy(
+                        name = name,
+                        address = address,
+                        accessToken = accessToken,
+                        phone = phone,
+                        taxNumber = taxNumber,
+                        iban = iban,
+                        email = email,
+                        isTaxpayer = isTaxpayer,
+                        defaultIssuer = defaultIssuer
+                    )
+                    onUpdateCompany(updatedCompany)
+                }
+            }, modifier = Modifier.weight(1f)) {
+                Text("Shrani")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = onCancel, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)) {
+                Text("Prekliči")
+            }
+        }
+    }
+}
+
+@Composable
+fun EditCompanyScreen(company: Company, onBack: () -> Unit, onSave: (Company) -> Unit) {
+    EditCompanyForm(
+        company = company,
+        onUpdateCompany = onSave,
+        onCancel = onBack
+    )
+}
+
