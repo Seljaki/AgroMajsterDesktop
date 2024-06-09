@@ -1,5 +1,6 @@
 package scraper.gerk
 
+import http.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -8,8 +9,10 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import models.Plot
 import models.PlotGeoJson
 import models.PlotGeoJsonMultiPolygon
 import org.geotools.api.data.FileDataStoreFinder
@@ -33,7 +36,7 @@ fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double, onUpdat
 
     if (!file.exists()) {
         println("File does not exist")
-        onUpdateText("Datoteka ne obstaja")
+        onUpdateText("Datoteka ne obstaja.")
         return null
     }
 
@@ -61,6 +64,7 @@ fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double, onUpdat
         // Close the iterator
         featureIterator.close()
     } catch (e: Exception) {
+        onUpdateText("Prišlo je do napake")
         e.printStackTrace()
     }
     return null
@@ -74,7 +78,7 @@ fun simpleFeatureToGeoJson(feature: SimpleFeature): String {
     return json.jsonObject["geometry"].toString() ?: return ""
 }
 
-suspend fun downloadLatestGERKFiles(url: String, debug: Boolean = false): File {
+fun downloadLatestGERKFiles(url: String): File {
     val client = HttpClient(CIO) {
         install(HttpTimeout) {
             requestTimeoutMillis = 600000
@@ -82,21 +86,21 @@ suspend fun downloadLatestGERKFiles(url: String, debug: Boolean = false): File {
             socketTimeoutMillis = 600000
         }
     }
-    println("Downloading from url: $url")
     val file = File.createTempFile("GERKDATA", "index")
 
-    client.prepareGet(url).execute { httpResponse ->
-        val channel: ByteReadChannel = httpResponse.body()
-        while (!channel.isClosedForRead) {
-            val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-            while (!packet.isEmpty) {
-                val bytes = packet.readBytes()
-                file.appendBytes(bytes)
-                if(debug)
+    runBlocking {
+        client.prepareGet(url).execute { httpResponse ->
+            val channel: ByteReadChannel = httpResponse.body()
+            while (!channel.isClosedForRead) {
+                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+                while (!packet.isEmpty) {
+                    val bytes = packet.readBytes()
+                    file.appendBytes(bytes)
                     println("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
+                }
             }
+            println("A file saved to ${file.path}")
         }
-        println("A file saved to ${file.path}")
     }
 
     return file
@@ -154,7 +158,7 @@ fun findGERKShapefile(directoryPath: String = "downloads"): String {
     return file.path
 }
 
-suspend fun updateGERKData() {
+fun updateGERKData() {
     deleteGERKData()
     val GERKUrl = scrapeGERForLink() ?: return
     val file = downloadLatestGERKFiles(GERKUrl)
@@ -174,9 +178,9 @@ suspend fun main() {
         println(simpleFeatureToGeoJson(feature))
     }*/
 
-    if(!doesGERKDataExist()) { // PREVERIMO ČE OBSTAJAJO GERK PODATKI
+   /* if(!doesGERKDataExist()) { // PREVERIMO ČE OBSTAJAJO GERK PODATKI
         updateGERKData() // PRENESEMO PODATKE
-    }
+    }*/
 
     val filePath = findGERKShapefile() // POIŠČEMO .shp DATOTEKO
    /* val feature = findFeatureByCoordinates(filePath, 581585.9012,142261.7764) // poiščemo polygon z kordinati

@@ -2,7 +2,9 @@ package ui.scraper
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,10 +35,29 @@ fun FormPlotScraper() {
   var result: SimpleFeature? by remember { mutableStateOf(null) }
   var boundedText by remember { mutableStateOf("") }
   fun updateBoundedText(newText: String) {
-    boundedText = newText
+    boundedText += newText + "\n"
   }
 
   var isLoading by remember { mutableStateOf(false) }
+ var triggerCoroutinePost by remember { mutableStateOf(false) }
+
+  LaunchedEffect(triggerCoroutinePost) {
+    if (triggerCoroutinePost) {
+      if (result != null) {
+        updateBoundedText("Pretvarjanje v GeoJson.")
+        val geom = simpleFeatureToGeoJson(result!!)
+        val gjson = Json.decodeFromString<PlotGeoJsonMultiPolygon>(geom)
+        val gjson2: PlotGeoJson = geoJsonMPToPolygon(gjson)
+        val plot = Plot("KOTLIN GERK", "TETS KOTLIN", gjson2)
+        postPlot(plot)
+        updateBoundedText("Uspešno shranjeno v bazo.")
+      } else {
+        updateBoundedText("Prišlo je do napake pri shranjevanju polja.")
+      }
+
+      triggerCoroutinePost = false
+    }
+  }
 
   Column(
     modifier = Modifier
@@ -47,7 +68,7 @@ fun FormPlotScraper() {
     if (isLoading) {
       CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
       Text(
-        text = "Downloading files\nGo grab some coffee ☕",
+        text = "Prenašanje datoteki\nZgrabite si kavico ☕",
         fontSize = 20.sp
       )
     } else {
@@ -63,15 +84,24 @@ fun FormPlotScraper() {
           onClick = {
             coroutineScope.launch {
               isLoading = true
-                updateGERKData()
+              updateGERKData()
               isLoading = false
+              updateBoundedText("Končano prenašanje datotek")
             }
           },
           modifier = Modifier.padding(end = 8.dp)
         ) {
           Text("Pridobi z GERK-a")
         }
-        Button(onClick = { coroutineScope.launch { deleteGERKData() } }) {
+        Button(onClick = {
+          coroutineScope.launch {
+            updateBoundedText("Brisanje GERK podatkov.")
+            coroutineScope.launch {
+              deleteGERKData()
+              updateBoundedText("Končano.")
+            }
+          }
+        }) {
           Text("Počisti podatke")
         }
       }
@@ -137,37 +167,30 @@ fun FormPlotScraper() {
             )
           }
         }
-        Button(onClick = {
-          if (latitude != null && longitude != null) {
-            coroutineScope.launch {
-              result = findFeatureByCoordinates(findGERKShapefile(), longitude!!, latitude!!){ newBoundedText ->
-                updateBoundedText(newBoundedText)
+        Button(
+          onClick = {
+            if (latitude != null && longitude != null) {
+              coroutineScope.launch {
+                result = findFeatureByCoordinates(findGERKShapefile(), longitude!!, latitude!!) { newBoundedText ->
+                  updateBoundedText(newBoundedText)
+                }
               }
+            } else {
+              if (longitude == null) longitudeError = "neveljavna vrednost"
+              if (latitude == null) latitudeError = "neveljavna vrednost"
             }
-          } else {
-            if (longitude == null) longitudeError = "neveljavna vrednost"
-            if (latitude == null) latitudeError = "neveljavna vrednost"
-          }
-        },
-          modifier = Modifier.padding(start = 16.dp)) {
+          },
+          modifier = Modifier.padding(start = 16.dp)
+        ) {
           Text("Poišči polje")
         }
       }
       Spacer(modifier = Modifier.width(16.dp))
       Spacer(modifier = Modifier.height(16.dp))
       BoundedTextBox(boundedText)
-      Button(onClick = { coroutineScope.launch {
-        if(result!=null){
-          val geom = simpleFeatureToGeoJson(result!!)
-          val gjson = Json.decodeFromString<PlotGeoJsonMultiPolygon>(geom)
-          val gjson2: PlotGeoJson = geoJsonMPToPolygon(gjson)
-          val plot = Plot("KOTLIN GERK", "TETS KOTLIN", gjson2)
-          postPlot(plot)
-        } else{
-          boundedText = "prišlo je do napake pri iskanju polja"
-        }
-
-      } }) {
+      Button(onClick = {
+        triggerCoroutinePost=true
+      }) {
         Text("Shrani v bazo")
       }
     }
@@ -176,18 +199,20 @@ fun FormPlotScraper() {
 
 @Composable
 fun BoundedTextBox(text: String) {
+  val scrollState = rememberScrollState()
+
   Box(
     modifier = Modifier
       .size(width = 450.dp, height = 200.dp)
       .border(1.dp, color = Color.Gray, shape = RoundedCornerShape(5.dp))
       .padding(8.dp)
       .clipToBounds()
+      .verticalScroll(scrollState)
   ) {
     Text(
       text = text,
       fontSize = 14.sp,
       overflow = TextOverflow.Clip,
-      maxLines = 3,
       modifier = Modifier.fillMaxSize()
     )
   }
