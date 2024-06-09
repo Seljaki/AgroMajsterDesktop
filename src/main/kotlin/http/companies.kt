@@ -9,6 +9,10 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 
+val json = Json {
+    ignoreUnknownKeys = true
+}
+
 @Serializable
 data class Company(val id : Int, val name: String, val address: String? = null, val accessToken: String? = null,
                    val phone: String? = null, val taxNumber: String? = null, val iban: String? = null, val email: String? = null,
@@ -29,8 +33,15 @@ suspend fun getAllCompany(): List<Company> {
 suspend fun deleteCompany(companyId: Int): Boolean {
     val client = getClient()
     val response: HttpResponse = client.delete("/companies/$companyId")
-    println(response)
     return response.status.value in 200..299
+}
+
+suspend fun getCompanyById(companyId: Int): Company{
+    val client = getClient()
+    val response: HttpResponse = client.get("/companies/$companyId")
+    val jsonElement = Json.parseToJsonElement(response.bodyAsText())
+    val companyJson = jsonElement.jsonObject["company"]!!
+    return json.decodeFromJsonElement(companyJson)
 }
 
 suspend fun addCompany(company: Company): Boolean {

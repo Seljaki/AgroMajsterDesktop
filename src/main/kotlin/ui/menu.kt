@@ -13,5 +13,6 @@ fun menu(onLogOutClicked: () -> Unit, onListCompaniesClicked: () -> Unit, onGene
     MenuButton(Icons.Default.Share,"Scraper", onClick = onScraperClicked)
     MenuButton(Icons.Default.Edit,"Generator", onClick = onGeneratorClicked)
     MenuButton(Icons.Default.Info,"List Companies", onClick = onListCompaniesClicked)
+    MenuButton(Icons.Default.Info, "List Invoices", onClick =  onInvoicesClicked)
     MenuButton(Icons.Default.Lock,"Log out", onClick = { logOut(); onLogOutClicked() })
 }
