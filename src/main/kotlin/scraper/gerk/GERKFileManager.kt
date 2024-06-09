@@ -28,7 +28,7 @@ import java.io.StringWriter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double): SimpleFeature? {
+fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double, onUpdateText: (String) -> Unit): SimpleFeature? {
     val file = File(filePath)
 
     val geometryFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory()
@@ -36,6 +36,7 @@ fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double): Simple
 
     if (!file.exists()) {
         println("File does not exist")
+        onUpdateText("Datoteka ne obstaja.")
         return null
     }
 
@@ -54,6 +55,7 @@ fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double): Simple
             val geometry: Geometry = feature.defaultGeometry as Geometry
             if (geometry.contains(point)) {
                 println("FOUND")
+                onUpdateText("Najdeno je bilo polje: ${feature.defaultGeometry}")
                 //featureIterator.close()
                 return feature
             }
@@ -62,6 +64,7 @@ fun findFeatureByCoordinates(filePath: String, lng: Double, lat: Double): Simple
         // Close the iterator
         featureIterator.close()
     } catch (e: Exception) {
+        onUpdateText("Prišlo je do napake")
         e.printStackTrace()
     }
     return null
@@ -75,7 +78,7 @@ fun simpleFeatureToGeoJson(feature: SimpleFeature): String {
     return json.jsonObject["geometry"].toString() ?: return ""
 }
 
-fun downloadLatestGERKFiles(url: String): File {
+suspend fun downloadLatestGERKFiles(url: String): File {
     val client = HttpClient(CIO) {
         install(HttpTimeout) {
             requestTimeoutMillis = 600000
@@ -85,19 +88,17 @@ fun downloadLatestGERKFiles(url: String): File {
     }
     val file = File.createTempFile("GERKDATA", "index")
 
-    runBlocking {
-        client.prepareGet(url).execute { httpResponse ->
-            val channel: ByteReadChannel = httpResponse.body()
-            while (!channel.isClosedForRead) {
-                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                while (!packet.isEmpty) {
-                    val bytes = packet.readBytes()
-                    file.appendBytes(bytes)
-                    println("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
-                }
+    client.prepareGet(url).execute { httpResponse ->
+        val channel: ByteReadChannel = httpResponse.body()
+        while (!channel.isClosedForRead) {
+            val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+            while (!packet.isEmpty) {
+                val bytes = packet.readBytes()
+                file.appendBytes(bytes)
+                println("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
             }
-            println("A file saved to ${file.path}")
         }
+        println("A file saved to ${file.path}")
     }
 
     return file
@@ -155,7 +156,7 @@ fun findGERKShapefile(directoryPath: String = "downloads"): String {
     return file.path
 }
 
-fun updateGERKData() {
+suspend fun updateGERKData() {
     deleteGERKData()
     val GERKUrl = scrapeGERForLink() ?: return
     val file = downloadLatestGERKFiles(GERKUrl)
@@ -175,12 +176,12 @@ suspend fun main() {
         println(simpleFeatureToGeoJson(feature))
     }*/
 
-    if(!doesGERKDataExist()) { // PREVERIMO ČE OBSTAJAJO GERK PODATKI
+   /* if(!doesGERKDataExist()) { // PREVERIMO ČE OBSTAJAJO GERK PODATKI
         updateGERKData() // PRENESEMO PODATKE
-    }
+    }*/
 
     val filePath = findGERKShapefile() // POIŠČEMO .shp DATOTEKO
-    val feature = findFeatureByCoordinates(filePath, 581585.9012,142261.7764) // poiščemo polygon z kordinati
+   /* val feature = findFeatureByCoordinates(filePath, 581585.9012,142261.7764) // poiščemo polygon z kordinati
     if(feature != null) {
         println(feature.defaultGeometry)
         val geom = simpleFeatureToGeoJson(feature)
@@ -198,5 +199,5 @@ suspend fun main() {
             TOKEN = token
             postPlot(plot)
         }
-    }
+    }*/
 }
