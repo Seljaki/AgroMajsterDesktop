@@ -85,15 +85,16 @@ fun AddInvoiceForm(
             Button(onClick = {
                 coroutineScope.launch {
                     if (selectedCustomer != null && selectedIssuer != null) {
+                        val nullableNote = if (note=="") null else dueDate
                         val newInvoice = Invoice(
                             title = title,
-                            note = note,
+                            note = nullableNote,
                             started = started,
-                            ended = ended,
+                            ended = null,
                             isPaid = isPaid,
-                            dueDate = dueDate,
-                            customer = selectedCustomer!!,
-                            issuer = selectedIssuer!!
+                            dueDate = null,
+                            customer_id = selectedCustomer!!.id,
+                            issuer_id = selectedIssuer!!.id,
                         )
                         println("Created new invoice: $newInvoice")  // Debug logging
                         onAddInvoice(newInvoice)
@@ -122,9 +123,9 @@ fun InvoiceItem(invoice: Invoice, onClick: () -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = invoice.title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Customer: ${invoice.customer.name}", fontSize = 16.sp)
+            Text(text = "Customer: ${invoice.customer!!.name}", fontSize = 16.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Issuer: ${invoice.issuer.name}", fontSize = 16.sp)
+            Text(text = "Issuer: ${invoice.issuer!!.name}", fontSize = 16.sp)
         }
     }
 }
@@ -218,13 +219,14 @@ fun InvoiceDetailScreen(invoice: Invoice, onBack: () -> Unit, onDelete: () -> Un
         } else {
             Text(text = "Invoice ID: ${invoice.id}", fontSize = 18.sp)
             Text(text = "Title: ${invoice.title}", fontSize = 18.sp)
-            Text(text = "Note: ${invoice.note}", fontSize = 18.sp)
+            Text(text = "Note: ${invoice.note?: "N/A"}", fontSize = 18.sp)
             Text(text = "Started: ${invoice.started}", fontSize = 18.sp)
             Text(text = "Ended: ${invoice.ended ?: "N/A"}", fontSize = 18.sp)
             Text(text = "Due Date: ${invoice.dueDate ?: "N/A"}", fontSize = 18.sp)
             Text(text = "Is Paid: ${if (invoice.isPaid) "Yes" else "No"}", fontSize = 18.sp)
-            Text(text = "Customer: ${invoice.customer.name}", fontSize = 18.sp)
-            Text(text = "Issuer: ${invoice.issuer.name}", fontSize = 18.sp)
+            Text(text = "Customer: ${invoice.customer!!.name}", fontSize = 18.sp)
+            Text(text = "Issuer: ${invoice.issuer!!.name}", fontSize = 18.sp)
+            Text(text = "Total price: ${invoice.totalPrice} €", fontSize = 18.sp)
 
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -287,14 +289,14 @@ fun EditInvoiceForm(
             selectedItem = selectedCustomer,
             onItemSelect = { selectedCustomer = it },
             label = "Select Customer",
-            itemToString = { it.name }
+            itemToString = { it!!.name }
         )
         CustomDropdownMenu(
             items = listOf(selectedIssuer),
             selectedItem = selectedIssuer,
             onItemSelect = { selectedIssuer = it },
             label = "Select Issuer",
-            itemToString = { it.name }
+            itemToString = { it!!.name }
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
@@ -308,14 +310,18 @@ fun EditInvoiceForm(
         Row {
             Button(onClick = {
                 coroutineScope.launch {
+                    val nullableDueDate = if (dueDate=="") null else dueDate
+                    val nullableEnded = if (ended=="") null else ended
                     val updatedInvoice = Invoice(
                         id = invoice.id,
                         title = title,
                         note = note,
                         started = started,
-                        ended = ended,
+                        ended = nullableEnded,
                         isPaid = isPaid,
-                        dueDate = dueDate,
+                        dueDate = nullableDueDate,
+                        customer_id = selectedCustomer!!.id,
+                        issuer_id = selectedIssuer!!.id,
                         customer = selectedCustomer,
                         issuer = selectedIssuer
                     )
