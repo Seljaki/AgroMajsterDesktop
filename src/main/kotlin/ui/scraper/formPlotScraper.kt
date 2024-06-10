@@ -171,9 +171,11 @@ fun FormPlotScraper() {
           onClick = {
             if (latitude != null && longitude != null) {
               coroutineScope.launch {
-                result = findFeatureByCoordinates(findGERKShapefile(), longitude!!, latitude!!) { newBoundedText ->
-                  updateBoundedText(newBoundedText)
-                }
+                if(doesGERKDataExist())
+                  result = findFeatureByCoordinates(findGERKShapefile(), longitude!!, latitude!!) { newBoundedText ->
+                    updateBoundedText(newBoundedText)}
+                  else
+                    updateBoundedText("No GERK data")
               }
             } else {
               if (longitude == null) longitudeError = "neveljavna vrednost"
