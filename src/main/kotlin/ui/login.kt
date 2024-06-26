@@ -1,5 +1,6 @@
 package ui
 
+import LoginInfo
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,14 +14,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import http.SERVER_URL
 import http.TOKEN
-import http.getAllUsers
 import http.login
 import kotlinx.coroutines.launch
+import storeLoginInfo
 
 @Composable
-fun LoginWindow() {
+fun LoginWindow(userInfo: MutableState<LoginInfo?>) {
     var url by remember { mutableStateOf(SERVER_URL) }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -62,6 +64,7 @@ fun LoginWindow() {
             TextField(
                 value = password,
                 onValueChange = { password = it },
+                visualTransformation = PasswordVisualTransformation(),
                 label = { Text("Password") },
             )
             Spacer(modifier = Modifier.height(10.dp))
@@ -76,15 +79,13 @@ fun LoginWindow() {
                     } else {
                         scope.launch {
                             val token = login(username, password)
-                            //println("Token: $token")
                             if (token != null) {
+                                val info = LoginInfo(username, token, url)
+                                storeLoginInfo(info)
                                 SERVER_URL = url
                                 TOKEN = token
-                               /* val users = getAllUsers()
-                                for (user in users) {
-                                    println(user)
-                                }*/
                                 loginError=""
+                                userInfo.value = info
                             } else loginError = "Invalid data"
                         }
                     }
