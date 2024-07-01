@@ -2,7 +2,7 @@
 
 # About Agro Majster Desktop Pro+
 
-Agro Majster web is a desktop app for managing data for the [Agro Majster rest server](https://github.com/Seljaki/server).
+Agro Majster Desktop Pro+ is a desktop app for managing data for the [Agro Majster rest server](https://github.com/Seljaki/server).
 
 | ![](assets/image1.png) | ![](assets/image2.png) |
 |------------------------|------------------------|
