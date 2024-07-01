@@ -27,6 +27,7 @@ dependencies {
     // compose.desktop.currentOs should be used in launcher-sourceSet
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
+    testImplementation(kotlin("test"))
     implementation(compose.desktop.currentOs)
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
@@ -51,6 +52,11 @@ dependencies {
     //implementation("ovh.plrapps:mapcompose-mp:0.9.3")
 
 }
+
+tasks.test {
+    useJUnitPlatform()
+}
+
 compose {
     kotlinCompilerPlugin.set("1.5.7")
 }
